@@ -1798,16 +1798,17 @@ video::cue {
     border: 1px solid rgba(255,255,255,.1);
     border-radius: 100px;
     padding: 5px 6px;
+    max-width: calc(100vw - 16px);
     box-shadow: 0 12px 40px rgba(0,0,0,.7), 0 2px 8px rgba(0,0,0,.4);
   }
   .mob-tab {
     display: flex; flex-direction: column; align-items: center; gap: 2px;
-    padding: 7px 14px; border-radius: 100px; cursor: pointer;
+    padding: 7px 9px; border-radius: 100px; cursor: pointer; white-space: nowrap;
     transition: background .2s, transform .15s;
     color: rgba(255,255,255,.4); font-size: 10px; font-family: var(--font-b);
     font-weight: 500; user-select: none;
     -webkit-tap-highlight-color: transparent;
-    min-width: 58px;
+    min-width: 52px;
   }
   .mob-tab svg { width: 19px; height: 19px; transition: transform .2s; }
   .mob-tab.active { background: rgba(255,255,255,.12); color: #fff; }
@@ -2957,3 +2958,20 @@ body.lq .toast { animation:none !important; opacity:1 !important; transform:none
 .access-temp > div { display:flex; align-items:center; gap:.5rem; flex-wrap:wrap; }
 .access-temp code { font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:14px; font-weight:600; color:#fff; letter-spacing:.04em; user-select:all; }
 .access-temp p { margin-top:.35rem; color:var(--text-3); font-size:11px; }
+
+/* ── Ma liste ── */
+.mc-list-btn {
+  position:absolute; top:10px; right:10px; z-index:3; width:32px; height:32px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center; padding:0; cursor:pointer;
+  background:rgba(0,0,0,.55); backdrop-filter:blur(8px); border:1.5px solid rgba(255,255,255,.55); color:#fff;
+  opacity:0; transform:scale(.85); transition:opacity .2s, transform .2s, background .15s, border-color .15s;
+}
+.mc-list-btn svg { width:14px; height:14px; }
+.movie-card:hover .mc-list-btn, .mc-list-btn:focus-visible { opacity:1; transform:scale(1); }
+.mc-list-btn:hover { background:rgba(255,255,255,.18); border-color:#fff; }
+.mc-list-btn.on { background:var(--accent); border-color:var(--accent); }
+@media (hover: none) { .mc-list-btn { opacity:1; transform:scale(1); width:28px; height:28px; top:8px; right:8px; } }
+.mylist-btn.on { border-color:rgba(var(--accent-rgb),.6); }
+.mylist-btn.on svg { color:var(--accent); }
+.mylist-empty p { max-width:420px; margin:.6rem auto 0; color:var(--text-3); font-size:13px; line-height:1.6; }
+.mylist-empty p svg { width:12px; height:12px; vertical-align:-1px; opacity:1; margin:0; }

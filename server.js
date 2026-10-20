@@ -553,6 +553,14 @@ const server = http.createServer((req, res) => {
     });
   }
 
+  // Ma liste : ajouter / retirer un titre
+  if (pathname === '/api/mylist' && req.method === 'POST') {
+    return readJson(req, res, 10e3, body => {
+      const r = auth.setInMyList(user, body.kind, body.id, !!body.on);
+      jsonRes(res, r, r.error ? 400 : 200);
+    });
+  }
+
   // ── Admin : comptes et demandes d'accès ─────────────────────────────────────
   if (pathname === '/api/admin/users') return jsonRes(res,{ users: auth.listUsers() });
 
@@ -606,6 +614,7 @@ const server = http.createServer((req, res) => {
     SHARED_KEYS.forEach(k => { if (d[k] != null) data[k] = d[k]; });
     data.myflix_progress  = JSON.stringify(user.progress || {});
     data.myflix_sub_style = JSON.stringify(user.subStyle || {});
+    data.myflix_mylist    = JSON.stringify(user.myList || []);
     return jsonRes(res, { ok: true, data });
   }
 

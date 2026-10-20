@@ -5,6 +5,7 @@ const App = (() => {
   // Données chargées depuis le serveur au démarrage (voir init())
   // localStorage utilisé comme cache local uniquement
   let movies      = [];
+  let myList      = []; // Ma liste du compte connecté : [{ kind, id, addedAt }]
   let customCats  = [];
   let collections = [];
   let directorsData = {};
@@ -83,6 +84,7 @@ const App = (() => {
         try { collections  = JSON.parse(d.myflix_collections     || '[]'); } catch(e) { collections = []; }
         try { directorsData= JSON.parse(d.myflix_directors       || '{}'); } catch(e) { directorsData = {}; }
         try { featuredList = JSON.parse(d.myflix_featured || '[]'); } catch(e) { featuredList = []; }
+        try { myList       = JSON.parse(d.myflix_mylist   || '[]'); } catch(e) { myList = []; }
         // Forcer SeriesManager à relire depuis le localStorage maintenant à jour
         SeriesManager.loadFromStorage();
         console.log('[Data] Loaded from server —', movies.length, 'movies,', SeriesManager.getAll().length, 'series,', SeriesManager.episodes.length, 'episodes');
@@ -94,6 +96,7 @@ const App = (() => {
     try { customCats   = JSON.parse(localStorage.getItem('myflix_cats')          || '[]'); } catch(e) { customCats = []; }
     try { collections  = JSON.parse(localStorage.getItem('myflix_collections')   || '[]'); } catch(e) { collections = []; }
     try { directorsData= JSON.parse(localStorage.getItem('myflix_directors')     || '{}'); } catch(e) { directorsData = {}; }
+    try { myList       = JSON.parse(localStorage.getItem('myflix_mylist')        || '[]'); } catch(e) { myList = []; }
     SeriesManager.loadFromStorage();
     console.log('[Data] Loaded from localStorage —', movies.length, 'movies,', SeriesManager.getAll().length, 'series,', SeriesManager.episodes.length, 'episodes');
     return false;
@@ -2144,6 +2147,7 @@ const App = (() => {
         </div>
         <div class="detail-actions">
           ${_watchBtns}
+          ${_myListBtnHtml('film', m.id)}
           <button class="hero-btn-info admin-only" style="font-size:13px;padding:10px 22px" onclick="App.openEdit('${m.id}');App.closeDetail()">${svg('ic-edit')} Modifier</button>
           <button class="hero-btn-info hero-btn-danger" style="font-size:13px;padding:10px 22px" onclick="App.confirmDelete('${m.id}');App.closeDetail()">${svg('ic-trash')} Supprimer</button>
         </div>
@@ -2260,16 +2264,56 @@ const App = (() => {
   };
   const stopHero=()=>{ cancelAnimationFrame(heroProgress); $('hero').style.display='none'; };
 
-  // ── FAVORITES ──
-  const isFav=id=>{ const m=movies.find(m=>m.id===id); return m?.favorite||false; };
-  const toggleFav=(id,e)=>{
-    e.stopPropagation();
-    const m=movies.find(m=>m.id===id); if(!m) return;
-    m.favorite=!m.favorite; save();
-    // update star button in place without re-rendering
-    const btn=document.querySelector(`.mc-fav[data-id="${id}"]`);
-    if(btn) btn.classList.toggle('active',m.favorite);
-    toast(m.favorite?'Ajouté aux favoris':'Retiré des favoris', m.favorite?'success':'info');
+  // ── MA LISTE (propre à chaque compte) ──
+  const _mlKey = (kind, id) => kind + ':' + id;
+  const inMyList = (kind, id) => myList.some(x => x.kind === kind && x.id === id);
+  const _myListBtnHtml = (kind, id) => {
+    const on = inMyList(kind, id);
+    return `<button class="hero-btn-info mylist-btn${on ? ' on' : ''}" data-mylist="${_mlKey(kind, id)}" style="font-size:13px;padding:10px 22px" onclick="App.toggleMyList('${kind}','${id}',event)">${svg(on ? 'ic-check' : 'ic-plus')} Ma liste</button>`;
+  };
+  const _myListCardBtn = (kind, id) => {
+    const on = inMyList(kind, id);
+    return `<button class="mc-list-btn${on ? ' on' : ''}" data-mylist="${_mlKey(kind, id)}" title="${on ? 'Retirer de ma liste' : 'Ajouter à ma liste'}" onclick="App.toggleMyList('${kind}','${id}',event)">${svg(on ? 'ic-check' : 'ic-plus')}</button>`;
+  };
+  const toggleMyList = async (kind, id, e) => {
+    e?.stopPropagation();
+    const on = !inMyList(kind, id);
+    const r = await apiPost('/api/mylist', { kind, id, on });
+    if (!r?.ok) { toast(esc(r?.error || 'Action impossible'), 'error'); return; }
+    myList = r.myList;
+    localStorage.setItem('myflix_mylist', JSON.stringify(myList));
+    // Mettre à jour tous les boutons de ce titre sans tout redessiner
+    document.querySelectorAll(`[data-mylist="${_mlKey(kind, id)}"]`).forEach(b => {
+      b.classList.toggle('on', on);
+      b.querySelector('use')?.setAttribute('href', on ? '#ic-check' : '#ic-plus');
+      if (b.classList.contains('mc-list-btn')) b.title = on ? 'Retirer de ma liste' : 'Ajouter à ma liste';
+    });
+    toast(on ? 'Ajouté à ta liste' : 'Retiré de ta liste', on ? 'success' : 'info');
+    if (page === 'mylist') goMyList();
+  };
+  // Titres de la liste encore présents au catalogue
+  const myListItems = () => myList.map(x => x.kind === 'serie'
+    ? (s => s && { kind:'serie', obj:s })(SeriesManager.getById(x.id))
+    : (m => m && { kind:'film', obj:m })(movies.find(m => m.id === x.id))).filter(Boolean);
+  const _mkListCard = it => it.kind === 'serie' ? mkSeriesCard(it.obj) : mkCard(it.obj);
+
+  const goMyList = () => {
+    window.scrollTo({ top:0, behavior:'instant' });
+    page = 'mylist'; pageParam = null; stopHero();
+    document.body.classList.remove('page-home');
+    if (window._syncMobileTab) window._syncMobileTab('mylist');
+    $$('.nav-tab').forEach(t => t.classList.toggle('active', t.dataset.section === 'mylist'));
+    const c = $('main-content'); c.innerHTML = '';
+    const items = myListItems();
+    const wrap = document.createElement('div'); wrap.className = 'genre-page';
+    wrap.innerHTML = `<div class="genre-page-header"><div class="genre-page-back" onclick="App.goHome()">${svg('ic-chevron-left')}</div><div><h2>Ma liste</h2><p style="color:var(--text-3);font-size:13px">${items.length} titre${items.length > 1 ? 's' : ''}</p></div></div>`;
+    c.appendChild(wrap);
+    if (!items.length) {
+      wrap.insertAdjacentHTML('beforeend', `<div class="empty-state mylist-empty"><h3>TA LISTE EST VIDE</h3><p>Ajoute des films et des séries avec le bouton ${svg('ic-plus')} sur les affiches ou « Ma liste » sur leur fiche, pour les retrouver ici.</p></div>`);
+      return;
+    }
+    const grid = document.createElement('div'); grid.className = 'movies-grid';
+    items.forEach(it => grid.appendChild(_mkListCard(it))); wrap.appendChild(grid);
   };
 
   // ── SYSTÈME DE PROGRESSION DE VISIONNAGE ─────────────────────────────────────
@@ -2426,7 +2470,8 @@ const App = (() => {
           ${m.rating?`<span class="mc-rating">★ ${esc(m.rating)}</span>`:''}
         </div>
         ${descShort?`<div class="mc-desc">${esc(descShort)}</div>`:''}
-      </div>`;
+      </div>
+      ${_myListCardBtn('film', m.id)}`;
     return div;
   };
 
@@ -2486,7 +2531,8 @@ const App = (() => {
           ${s.rating ? `<span class="mc-dot">·</span><span class="mc-rating">★ ${esc(s.rating)}</span>` : ''}
         </div>
         ${s.description ? `<div class="mc-desc">${esc(s.description.slice(0,120))}</div>` : ''}
-      </div>`;
+      </div>
+      ${_myListCardBtn('serie', s.id)}`;
     return div;
   };
 
@@ -2586,6 +2632,7 @@ const App = (() => {
         </div>
         <div class="series-detail-actions">
           ${_resumeBtn}
+          ${_myListBtnHtml('serie', s.id)}
           <button class="hero-btn-info admin-only" style="font-size:13px;padding:10px 22px" onclick="App.openEditSeries('${s.id}')">${svg('ic-edit')} Modifier</button>
           <button class="hero-btn-info hero-btn-danger" style="font-size:13px;padding:10px 22px" onclick="App.deleteSeries('${s.id}')">${svg('ic-trash')} Supprimer</button>
         </div>
@@ -2610,14 +2657,6 @@ const App = (() => {
     const open = list.style.display !== 'none';
     list.style.display = open ? 'none' : '';
     chevron.classList.toggle('open', !open);
-  };
-
-  const toggleSeriesFav = (id, e) => {
-    e.stopPropagation();
-    const fav = SeriesManager.toggleFav(id);
-    const btn = document.querySelector(`.mc-fav[data-id="${id}"]`);
-    if (btn) btn.classList.toggle('active', fav);
-    toast(fav ? 'Ajouté aux favoris' : 'Retiré des favoris', fav ? 'success' : 'info');
   };
 
   const deleteSeries = (id) => {
@@ -3693,6 +3732,16 @@ const App = (() => {
           grid.appendChild(div);
         }
       });
+    }
+
+    // Ma liste
+    const listItems = myListItems();
+    if (listItems.length) {
+      const sec = document.createElement('div'); sec.className = 'movie-section';
+      sec.innerHTML = `<div class="section-header"><div class="section-title">Ma liste <span class="section-count">${listItems.length}</span></div>${listItems.length > 7 ? '<span class="section-see-all" onclick="App.goMyList()">Voir tout →</span>' : ''}</div><div class="movies-grid movies-grid-7 mylist-row"></div>`;
+      c.appendChild(sec);
+      const grid = sec.querySelector('.mylist-row');
+      listItems.slice(0, 7).forEach(it => grid.appendChild(_mkListCard(it)));
     }
 
     // Récents films (non-anime)
@@ -5121,6 +5170,7 @@ const App = (() => {
     else if(page==='films'||page==='series'||page==='anime'||page==='animation') goSection(page);
     else if(page==='genre') goGenre(pageParam,pageSection);
     else if(page==='custom-cat') goCustomCat(pageParam);
+    else if(page==='mylist') goMyList();
     else goHome();
   };
 
@@ -6081,7 +6131,7 @@ const App = (() => {
     initPlayerControls();
 
     // Onglets
-    $$('.nav-tab').forEach(tab=>{ tab.addEventListener('click',()=>{ window.scrollTo({ top:0, behavior:'instant' }); const s=tab.dataset.section; if(s==='home') goHome(); else if(s==='search-page') goSearchPage(); else goSection(s); if(window._syncMobileTab) window._syncMobileTab(s); }); });
+    $$('.nav-tab').forEach(tab=>{ tab.addEventListener('click',()=>{ window.scrollTo({ top:0, behavior:'instant' }); const s=tab.dataset.section; if(s==='home') goHome(); else if(s==='search-page') goSearchPage(); else if(s==='mylist') goMyList(); else goSection(s); if(window._syncMobileTab) window._syncMobileTab(s); }); });
 
     // Logo
     $('nav-logo').addEventListener('click',goHome);
@@ -6374,6 +6424,7 @@ const App = (() => {
       if (panel) { if (!panel.dataset.forced) panel.remove(); return; }
       if($('player-wrap').classList.contains('open')) closePlayer();
       else if($('modal-detail').classList.contains('open')) closeDetail();
+      else if($('modal-series-detail').classList.contains('open')) closeSeriesDetail();
       else if($('modal-add').classList.contains('open')) closeAdd();
       else if($('modal-disk').classList.contains('open')) closeDisk();
       else if($('modal-scan').classList.contains('open')) closeModal('modal-scan');
@@ -6400,6 +6451,7 @@ const App = (() => {
         document.querySelectorAll('.mob-tab').forEach(t => t.classList.remove('active'));
         tab.classList.add('active');
         if (sec === 'home') goHome();
+        else if (sec === 'mylist') goMyList();
         else goSection(sec);
       });
     });
@@ -6505,8 +6557,8 @@ const App = (() => {
     _flowTabSwitch, _flowSelectSeries, _flowStep1Next, _flowRefreshGenres,
     _flowBackToStep1, _flowSaveEpisode,
     openFeaturedEditor, _fePickSlot, _feRemove,
-    deleteCustomCat, toggleFav,
-    showSeriesDetail, closeSeriesDetail, toggleSeriesFav, deleteSeries, deleteEpisode, deleteSeasonEpisodes, editEpisode, _epEditChooseFile,
+    deleteCustomCat, toggleMyList, goMyList,
+    showSeriesDetail, closeSeriesDetail, deleteSeries, deleteEpisode, deleteSeasonEpisodes, editEpisode, _epEditChooseFile,
     openAddEpisodeForSeries, openBulkImport, openNewSeries, openEditSeries, toggleSeason, playEpisode,
     _getAdjacentEpisode, _updateEpNavButtons,
     play, closePlayer, _playFromStart, showDetail, closeDetail, confirmDelete, hideEndScreen,

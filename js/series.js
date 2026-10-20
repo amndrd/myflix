@@ -70,7 +70,6 @@ const SeriesManager = (() => {
       rating     : data.rating      || '',
       year       : data.year        || '',
       noSeason   : data.noSeason    || false,
-      favorite   : false,
       addedAt    : Date.now(),
       updatedAt  : Date.now(),
     };
@@ -91,14 +90,6 @@ const SeriesManager = (() => {
     series   = series.filter(s => s.id !== id);
     episodes = episodes.filter(e => e.seriesId !== id);
     _saveToServer();
-  };
-
-  const toggleFav = (id) => {
-    const s = series.find(s => s.id === id);
-    if (!s) return;
-    s.favorite = !s.favorite;
-    _saveToServer();
-    return s.favorite;
   };
 
   // ── ÉPISODES ──────────────────────────────────────────────────────────────────
@@ -139,7 +130,7 @@ const SeriesManager = (() => {
   return {
     getAll, getById, getEpisodes, getBySeason, getBySection, countEpisodes,
     loadFromStorage,
-    createSeries, updateSeries, deleteSeries, toggleFav,
+    createSeries, updateSeries, deleteSeries,
     addEpisode, updateEpisode, deleteEpisode, episodeExists,
     get series()   { return series;   },
     get episodes() { return episodes; },

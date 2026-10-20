@@ -260,6 +260,19 @@ const decide = (userId, action) => {
   return { ok: true };
 };
 
+// Ma liste : films et séries à regarder plus tard, les plus récents en premier
+const MAX_LIST = 500;
+const setInMyList = (u, kind, id, on) => {
+  if (!['film', 'serie'].includes(kind) || typeof id !== 'string' || !id || id.length > 64) return { error: 'Titre invalide' };
+  const list = (u.myList || []).filter(x => !(x.kind === kind && x.id === id));
+  if (on) {
+    if (list.length >= MAX_LIST) return { error: 'Ta liste est pleine' };
+    list.unshift({ kind, id, addedAt: Date.now() });
+  }
+  u.myList = list; persist();
+  return { ok: true, myList: list };
+};
+
 // Données propres à chaque utilisateur (progression de lecture, style des sous-titres)
 const savePersonal = (u, { progress, subStyle }) => {
   if (progress !== undefined) u.progress = progress;
@@ -271,5 +284,5 @@ module.exports = {
   COOKIE_NAME, isLocalRequest, sessionCookie, rateLimited, notify,
   needsSetup, setupAdmin, register, login, createSession, currentUser, logout,
   listUsers, pendingCount, decide, savePersonal, publicUser, usernameOf,
-  changePassword, requestReset, resetPassword, findByName,
+  changePassword, requestReset, resetPassword, findByName, setInMyList,
 };

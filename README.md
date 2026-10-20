@@ -99,6 +99,10 @@ Le site est réservé aux comptes que tu as validés.
 - **Notification sur téléphone (facultatif)** : installe l'appli ntfy, abonne-toi à un nom de sujet difficile à deviner, puis ajoute-le dans `myflix-config.json` : `"ntfyTopic": "ton-sujet-secret"`.
 - Seul l'administrateur peut ajouter, modifier ou supprimer du contenu. Chaque membre a sa propre progression de lecture.
 
+### Ma liste
+
+Chaque compte a sa propre liste de films et séries à regarder plus tard : bouton **+** au survol d'une affiche (toujours visible sur téléphone), ou « Ma liste » sur la fiche. On la retrouve dans l'onglet « Ma liste » et en rangée sur l'accueil.
+
 ### Mots de passe
 
 - **Changer son mot de passe** : initiale → « Mon compte ». Les autres appareils connectés sont déconnectés.
