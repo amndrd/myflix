@@ -1,0 +1,10 @@
+# Données personnelles — jamais dans le dépôt
+myflix-*.json
+*.tmp
+
+# Affiches, fonds et logos des films (seul le logo du site est versionné)
+images/*
+!images/website-logo.png
+
+# macOS
+.DS_Store

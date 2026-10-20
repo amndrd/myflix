@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MyFlix — Connexion</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='12' fill='%23e50914'/><text x='50' y='72' font-size='58' text-anchor='middle' fill='white' font-family='serif'>M</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:#080808; --bg-card:#0f0f0f; --accent:#e50914; --accent-rgb:229,9,20;
+      --text:#f0f0f0; --text-2:#aaa; --text-3:#666; --border:rgba(255,255,255,.08);
+      --font-d:'Bebas Neue',sans-serif; --font-b:'Inter',sans-serif;
+    }
+    *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+    body {
+      min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px 16px;
+      background:
+        radial-gradient(ellipse 70% 50% at 50% -10%, rgba(var(--accent-rgb),.22), transparent 70%),
+        radial-gradient(ellipse 50% 40% at 50% 110%, rgba(var(--accent-rgb),.08), transparent 70%),
+        var(--bg);
+      color:var(--text); font-family:var(--font-b); font-size:14px; line-height:1.6;
+    }
+    .card {
+      width:100%; max-width:380px; background:var(--bg-card); border:1px solid var(--border);
+      border-radius:16px; padding:2.2rem 2rem 1.8rem; box-shadow:0 30px 80px rgba(0,0,0,.6);
+    }
+    .logo { display:flex; justify-content:center; margin-bottom:1.4rem; }
+    .logo img { height:44px; width:auto; }
+    .logo span { display:none; font-family:var(--font-d); font-size:34px; letter-spacing:.06em; color:var(--accent); }
+    h1 { font-family:var(--font-d); font-weight:400; font-size:28px; letter-spacing:.05em; text-align:center; }
+    .sub { color:var(--text-2); font-size:13px; text-align:center; margin:.25rem 0 1.6rem; }
+    form { display:flex; flex-direction:column; gap:.9rem; }
+    label { display:block; font-size:10px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:var(--text-2); margin-bottom:.35rem; }
+    label .opt { text-transform:none; letter-spacing:0; font-weight:400; color:var(--text-3); }
+    input, textarea {
+      width:100%; background:rgba(255,255,255,.04); border:1px solid var(--border); border-radius:8px;
+      color:var(--text); font-family:var(--font-b); font-size:14px; padding:.7rem .85rem; outline:none;
+      transition:border-color .15s, background .15s;
+    }
+    textarea { resize:vertical; min-height:72px; }
+    input:focus, textarea:focus { border-color:rgba(var(--accent-rgb),.6); background:rgba(255,255,255,.06); }
+    button.primary {
+      margin-top:.4rem; width:100%; background:var(--accent); color:#fff; border:none; border-radius:8px;
+      font-family:var(--font-b); font-size:13px; font-weight:600; letter-spacing:.04em; text-transform:uppercase;
+      padding:.8rem 1rem; cursor:pointer; transition:opacity .15s, transform .1s;
+    }
+    button.primary:hover { opacity:.9; }
+    button.primary:active { transform:scale(.99); }
+    button.primary:disabled { opacity:.5; cursor:wait; }
+    .switch { margin-top:1.3rem; text-align:center; color:var(--text-3); font-size:13px; }
+    .switch a { color:var(--text); text-decoration:none; font-weight:500; border-bottom:1px solid rgba(255,255,255,.25); cursor:pointer; }
+    .switch a:hover { border-color:var(--accent); }
+    .error {
+      display:none; font-size:12px; color:#ff6b6b; background:rgba(var(--accent-rgb),.08);
+      border:1px solid rgba(var(--accent-rgb),.25); border-radius:8px; padding:.55rem .75rem;
+    }
+    .error.show { display:block; }
+    .notice { text-align:center; }
+    .notice .icon {
+      width:56px; height:56px; border-radius:50%; margin:0 auto 1rem; display:flex; align-items:center; justify-content:center;
+      background:rgba(var(--accent-rgb),.12); border:1px solid rgba(var(--accent-rgb),.3); color:var(--accent);
+    }
+    .notice p { color:var(--text-2); font-size:13px; margin-top:.5rem; }
+    [hidden] { display:none !important; }
+  </style>
+</head>
+<body>
+
+<main class="card">
+  <div class="logo">
+    <img src="images/website-logo.png" alt="MyFlix" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+    <span>MYFLIX</span>
+  </div>
+
+  <!-- Connexion -->
+  <section id="view-login" hidden>
+    <h1>Connexion</h1>
+    <p class="sub">Accès réservé aux membres</p>
+    <form id="form-login">
+      <div><label for="login-user">Nom d'utilisateur</label><input id="login-user" name="username" autocomplete="username" required></div>
+      <div><label for="login-pwd">Mot de passe</label><input id="login-pwd" name="password" type="password" autocomplete="current-password" required></div>
+      <div class="error" role="alert"></div>
+      <button class="primary" type="submit">Se connecter</button>
+    </form>
+    <p class="switch">Pas encore de compte ? <a data-go="register">Demander un accès</a></p>
+  </section>
+
+  <!-- Demande d'accès -->
+  <section id="view-register" hidden>
+    <h1>Demander un accès</h1>
+    <p class="sub">Ta demande sera examinée avant que tu puisses entrer</p>
+    <form id="form-register">
+      <div><label for="reg-user">Nom d'utilisateur</label><input id="reg-user" name="username" autocomplete="username" minlength="3" maxlength="30" required></div>
+      <div><label for="reg-pwd">Mot de passe</label><input id="reg-pwd" name="password" type="password" autocomplete="new-password" minlength="8" required placeholder="8 caractères minimum"></div>
+      <div><label for="reg-pwd2">Confirmer le mot de passe</label><input id="reg-pwd2" name="password2" type="password" autocomplete="new-password" minlength="8" required></div>
+      <div><label for="reg-msg">Qui es-tu ? <span class="opt">(facultatif)</span></label><textarea id="reg-msg" name="message" maxlength="300" placeholder="Un mot pour que je te reconnaisse"></textarea></div>
+      <div class="error" role="alert"></div>
+      <button class="primary" type="submit">Envoyer la demande</button>
+    </form>
+    <p class="switch">Déjà un compte ? <a data-go="login">Se connecter</a></p>
+  </section>
+
+  <!-- Premier lancement : compte administrateur -->
+  <section id="view-setup" hidden>
+    <h1>Bienvenue</h1>
+    <p class="sub">Crée ton compte administrateur. Toi seul pourras gérer le catalogue et valider les demandes d'accès.</p>
+    <form id="form-setup">
+      <div><label for="setup-user">Nom d'utilisateur</label><input id="setup-user" name="username" autocomplete="username" minlength="3" maxlength="30" required></div>
+      <div><label for="setup-pwd">Mot de passe</label><input id="setup-pwd" name="password" type="password" autocomplete="new-password" minlength="8" required placeholder="8 caractères minimum"></div>
+      <div><label for="setup-pwd2">Confirmer le mot de passe</label><input id="setup-pwd2" name="password2" type="password" autocomplete="new-password" minlength="8" required></div>
+      <div class="error" role="alert"></div>
+      <button class="primary" type="submit">Créer le compte</button>
+    </form>
+  </section>
+
+  <!-- Demande en attente -->
+  <section id="view-pending" class="notice" hidden>
+    <div class="icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+    <h1>Demande en attente</h1>
+    <p>Ta demande d'accès a bien été envoyée. Tu pourras te connecter dès qu'elle aura été validée.</p>
+    <p class="switch"><a data-go="login">Retour à la connexion</a></p>
+  </section>
+
+  <!-- Demande refusée -->
+  <section id="view-rejected" class="notice" hidden>
+    <div class="icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>
+    <h1>Accès refusé</h1>
+    <p>Ta demande d'accès n'a pas été acceptée.</p>
+    <p class="switch"><a data-go="login">Retour à la connexion</a></p>
+  </section>
+
+  <!-- Site pas encore configuré (visiteur extérieur) -->
+  <section id="view-unavailable" class="notice" hidden>
+    <h1>Bientôt disponible</h1>
+    <p>Le site est en cours de configuration. Reviens un peu plus tard.</p>
+  </section>
+</main>
+
+<script>
+(() => {
+  const views = ['login','register','setup','pending','rejected','unavailable'];
+  const show = (name) => {
+    views.forEach(v => { document.getElementById('view-' + v).hidden = v !== name; });
+    const first = document.querySelector('#view-' + name + ' input');
+    if (first) first.focus();
+  };
+  document.querySelectorAll('[data-go]').forEach(a => a.addEventListener('click', () => show(a.dataset.go)));
+
+  const post = async (url, body) => {
+    try {
+      const r = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+      return { status: r.status, data: await r.json().catch(() => ({})) };
+    } catch(e) { return { status: 0, data: { error: 'Serveur injoignable' } }; }
+  };
+
+  // Branche un formulaire : validation, envoi, affichage des erreurs
+  const bind = (formId, handler) => {
+    const form = document.getElementById(formId);
+    const err  = form.querySelector('.error');
+    const btn  = form.querySelector('button[type=submit]');
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      err.classList.remove('show');
+      const f = Object.fromEntries(new FormData(form));
+      if (f.password2 !== undefined && f.password !== f.password2) {
+        err.textContent = 'Les mots de passe ne correspondent pas'; err.classList.add('show'); return;
+      }
+      btn.disabled = true;
+      const msg = await handler(f);
+      btn.disabled = false;
+      if (msg) { err.textContent = msg; err.classList.add('show'); }
+    });
+  };
+
+  bind('form-login', async (f) => {
+    const { status, data } = await post('/api/auth/login', { username:f.username, password:f.password });
+    if (data.ok) { location.href = '/'; return; }
+    if (data.status === 'pending')  { show('pending');  return; }
+    if (data.status === 'rejected') { show('rejected'); return; }
+    return data.error || 'Connexion impossible';
+  });
+
+  bind('form-register', async (f) => {
+    const { data } = await post('/api/auth/register', { username:f.username, password:f.password, message:f.message });
+    if (data.ok) { document.getElementById('form-register').reset(); show('pending'); return; }
+    return data.error || 'Envoi impossible';
+  });
+
+  bind('form-setup', async (f) => {
+    const { data } = await post('/api/auth/setup', { username:f.username, password:f.password });
+    if (data.ok) { location.href = '/'; return; }
+    return data.error || 'Création impossible';
+  });
+
+  fetch('/api/auth/state').then(r => r.json()).then(s => {
+    if (s.needsSetup) show(s.setupAllowed ? 'setup' : 'unavailable');
+    else show('login');
+  }).catch(() => show('login'));
+})();
+</script>
+</body>
+</html>

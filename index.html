@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MyFlix</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='12' fill='%23e50914'/><text x='50' y='72' font-size='58' text-anchor='middle' fill='white' font-family='serif'>M</text></svg>">
+</head>
+<body>
+
+<!-- SVG ICONS -->
+<svg style="display:none" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="ic-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></symbol>
+  <symbol id="ic-play" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></symbol>
+  <symbol id="ic-info" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></symbol>
+  <symbol id="ic-edit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></symbol>
+  <symbol id="ic-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></symbol>
+  <symbol id="ic-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></symbol>
+  <symbol id="ic-film" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="17"/><line x1="17" y1="17" x2="22" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/></symbol>
+  <symbol id="ic-upload" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></symbol>
+  <symbol id="ic-hdd" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="12" x2="2" y2="12"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/><line x1="6" y1="16" x2="6.01" y2="16"/><line x1="10" y1="16" x2="10.01" y2="16"/></symbol>
+  <symbol id="ic-scan" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9V5a2 2 0 0 1 2-2h4"/><path d="M15 3h4a2 2 0 0 1 2 2v4"/><path d="M21 15v4a2 2 0 0 1-2 2h-4"/><path d="M9 21H5a2 2 0 0 1-2-2v-4"/><line x1="8" y1="12" x2="16" y2="12"/></symbol>
+  <symbol id="ic-settings" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></symbol>
+  <symbol id="ic-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></symbol>
+  <symbol id="ic-warn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol>
+  <symbol id="ic-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></symbol>
+  <symbol id="ic-tag" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></symbol>
+  <symbol id="ic-folder" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></symbol>
+  <symbol id="ic-chevron-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></symbol>
+  <symbol id="ic-chevron-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></symbol>
+  <symbol id="ic-collection" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="16" height="13" rx="2"/><path d="M6 7V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2"/></symbol>
+</svg>
+
+<!-- DISK BANNER -->
+<div id="disk-banner"></div>
+
+<!-- NAVBAR -->
+<canvas id="grid-bg" style="position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:0;transition:opacity .3s"></canvas>
+<nav id="navbar">
+  <span class="nav-logo" id="nav-logo">
+    <img src="images/website-logo.png" alt="MYFLIX" class="nav-logo-img"
+         onerror="this.style.display='none';document.getElementById('nav-logo-text').style.display='inline'">
+    <span id="nav-logo-text" style="display:none">MYFLIX</span>
+  </span>
+
+  <!-- Onglets principaux -->
+  <div class="nav-tabs">
+    <button class="nav-tab active" data-section="home" id="tab-home">Accueil</button>
+    <button class="nav-tab" data-section="films" id="tab-films">Films</button>
+    <button class="nav-tab" data-section="series" id="tab-series">Séries</button>
+    <button class="nav-tab" data-section="anime" id="tab-anime">Anime</button>
+    <button class="nav-tab" data-section="animation" id="tab-animation">Animation</button>
+    <button class="nav-tab" data-section="search-page" id="tab-search">Rechercher</button>
+  </div>
+
+  <div class="nav-spacer"></div>
+
+  <!-- Barre de recherche compacte à droite -->
+  <div class="nav-search-bar" id="nav-search-bar">
+    <svg width="14" height="14"><use href="#ic-search"/></svg>
+    <input type="text" id="nav-search-input" placeholder="Rechercher…" autocomplete="off">
+    <span class="nav-search-clear" id="nav-search-clear" style="display:none">
+      <svg width="13" height="13"><use href="#ic-x"/></svg>
+    </span>
+  </div>
+
+  <div class="nav-actions">
+    <button class="nav-btn" id="btn-transfer" title="Exporter / Importer les données" style="background:rgba(255,255,255,.07);border:1px solid var(--border)">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+    </button>
+    <button class="nav-btn nav-btn-primary" id="btn-add">
+      <svg width="14" height="14"><use href="#ic-plus"/></svg> <span class="nav-btn-text">Ajouter</span>
+    </button>
+    <button class="nav-settings-btn" id="nav-settings-btn" onclick="App.openSettings()" title="Réglages">
+      <svg width="16" height="16"><use href="#ic-settings"/></svg>
+    </button>
+    <!-- Compte -->
+    <div class="nav-account" id="nav-account">
+      <button class="nav-account-btn" id="nav-account-btn" title="Mon compte" aria-haspopup="menu">
+        <span id="nav-account-initial"></span>
+        <span class="nav-account-badge" id="nav-account-badge" hidden></span>
+      </button>
+      <div class="nav-account-menu" id="nav-account-menu" role="menu" hidden>
+        <div class="nav-account-name" id="nav-account-name"></div>
+        <button class="admin-only" role="menuitem" onclick="App.openAccessPanel()">Demandes d'accès <span class="nav-account-count" id="nav-account-count"></span></button>
+        <button role="menuitem" onclick="App.openRequestsPanel()"><span id="nav-requests-label">Demander un film</span> <span class="nav-account-count" id="nav-requests-count"></span></button>
+        <button role="menuitem" onclick="App.logout()">Se déconnecter</button>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section id="hero" style="display:none">
+  <div id="hero-border-glow"></div>
+  <div id="hero-bg-a"></div>
+  <div id="hero-bg-b"></div>
+  <div class="hero-vignette"></div>
+  <div class="hero-content" id="hero-content">
+    <div class="hero-badges" id="hero-badges"></div>
+    <h1 id="hero-title"></h1>
+    <p id="hero-desc"></p>
+    <div class="hero-actions">
+      <button class="hero-btn-play" id="hero-play"><svg><use href="#ic-play"/></svg> Regarder</button>
+      <button class="hero-btn-info" id="hero-info"><svg><use href="#ic-info"/></svg> Plus d'infos</button>
+    </div>
+  </div>
+  <div id="hero-progress"></div>
+</section>
+
+<!-- MAIN -->
+<main id="main-content"></main>
+
+<!-- ══ MODAL : AJOUTER / MODIFIER ══ -->
+<div class="m-overlay" id="modal-add">
+  <div class="m-box">
+    <div class="m-head">
+      <h2 id="modal-add-title">AJOUTER</h2>
+      <div class="m-close" id="modal-add-close"><svg><use href="#ic-x"/></svg></div>
+    </div>
+    <div class="m-body">
+      <form id="movie-form" onsubmit="return false">
+
+        <div class="fg">
+          <label>Titre *</label>
+          <input type="text" id="f-title" placeholder="Ex : Inception" maxlength="200" required>
+        </div>
+
+        <div class="fg-row">
+          <div class="fg">
+            <label>Année</label>
+            <input type="number" id="f-year" placeholder="2024" min="1888" max="2099">
+          </div>
+          <div class="fg">
+            <label>Type</label>
+            <select id="f-section" onchange="App.renderGenrePicker(this.value)">
+              <option value="films">Film</option>
+              <option value="series">Série</option>
+            </select>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:.5rem">
+            <div class="fg" style="display:flex;align-items:center;justify-content:space-between;padding:.6rem .8rem;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r)">
+              <label style="margin:0;text-transform:none;letter-spacing:0;font-size:13px;color:var(--text-2)">Anime</label>
+              <button type="button" id="f-anime-toggle" onclick="App.toggleAnimeField()" style="width:40px;height:22px;border-radius:11px;border:none;cursor:pointer;transition:background .2s;background:rgba(255,255,255,.15)">
+                <div id="f-anime-dot" style="width:16px;height:16px;border-radius:50%;background:#fff;transition:transform .2s;transform:translateX(2px)"></div>
+              </button>
+              <input type="hidden" id="f-is-anime" value="false">
+            </div>
+            <div class="fg" style="display:flex;align-items:center;justify-content:space-between;padding:.6rem .8rem;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r)">
+              <label style="margin:0;text-transform:none;letter-spacing:0;font-size:13px;color:var(--text-2)">Animation</label>
+              <button type="button" id="f-animation-toggle" onclick="App.toggleAnimationField()" style="width:40px;height:22px;border-radius:11px;border:none;cursor:pointer;transition:background .2s;background:rgba(255,255,255,.15)">
+                <div id="f-animation-dot" style="width:16px;height:16px;border-radius:50%;background:#fff;transition:transform .2s;transform:translateX(2px)"></div>
+              </button>
+              <input type="hidden" id="f-is-animation" value="false">
+            </div>
+          </div>
+        </div>
+
+        <!-- Genres multiples -->
+        <div class="fg">
+          <label>Genres <span style="color:var(--text-3);font-weight:400;text-transform:none;letter-spacing:0;font-size:10px">— sélectionne plusieurs si besoin</span></label>
+          <div class="genre-picker" id="genre-picker">
+            <!-- généré par JS -->
+          </div>
+        </div>
+
+        <!-- Catégories custom -->
+        <div class="fg">
+          <label>Catégories personnalisées <span style="color:var(--text-3);font-weight:400;text-transform:none;letter-spacing:0;font-size:10px">— optionnel</span></label>
+          <div class="custom-cat-picker" id="custom-cat-picker">
+            <!-- généré par JS -->
+          </div>
+          <button type="button" class="btn-create-cat" id="btn-create-cat">
+            <svg width="12" height="12"><use href="#ic-plus"/></svg> Nouvelle catégorie
+          </button>
+        </div>
+
+        <div class="fg-row">
+          <div class="fg">
+            <label>Réalisateur</label>
+            <input type="text" id="f-director" placeholder="Ex : Christopher Nolan">
+          </div>
+          <div class="fg">
+            <label>Durée (min)</label>
+            <input type="number" id="f-duration" placeholder="148" min="1" max="999">
+          </div>
+        </div>
+
+        <div class="fg">
+          <label>Note /10</label>
+          <input type="number" id="f-rating" placeholder="8.5" min="0" max="10" step="0.1">
+        </div>
+
+        <div class="fg">
+          <label>Synopsis</label>
+          <textarea id="f-description" placeholder="Résumé…" rows="3"></textarea>
+        </div>
+
+        <!-- Affiche -->
+        <div class="fg">
+          <label>Affiche <span style="color:var(--text-3);font-weight:400;letter-spacing:0;text-transform:none;font-size:10px">— nom du fichier dans <code>images/</code></span></label>
+          <div class="img-input-wrap">
+            <input type="text" id="f-poster-name" placeholder="ex: inception-cover.jpg" autocomplete="off">
+            <div class="poster-thumb" id="poster-thumb">
+              <img id="poster-img" src="" alt="" style="display:none;width:100%;height:100%;object-fit:cover">
+              <svg><use href="#ic-film"/></svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Image paysage -->
+        <div class="fg">
+          <label>Image paysage <span style="color:var(--text-3);font-weight:400;letter-spacing:0;text-transform:none;font-size:10px">— pour le bandeau héro</span></label>
+          <input type="text" id="f-backdrop-name" placeholder="ex: inception-backdrop.jpg" autocomplete="off">
+          <div class="backdrop-preview-wrap" id="backdrop-preview-wrap" style="display:none;margin-top:.5rem">
+            <img id="backdrop-img" src="" alt="">
+          </div>
+        </div>
+
+        <!-- Logo -->
+        <div class="fg">
+          <label>Logo du film <span style="color:var(--text-3);font-weight:400;letter-spacing:0;text-transform:none;font-size:10px">— PNG transparent, remplace le titre sur la carte</span></label>
+          <input type="text" id="f-logo-name" placeholder="ex: inception-logo.png" autocomplete="off">
+          <div id="logo-preview-wrap" style="display:none;margin-top:.5rem;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r);padding:.8rem;text-align:center">
+            <img id="logo-preview" src="" alt="" style="max-height:60px;max-width:100%;object-fit:contain">
+          </div>
+        </div>
+
+        <!-- Vidéo -->
+        <div class="fg">
+          <label>Fichier vidéo</label>
+          <div class="disk-notice" id="disk-notice" style="display:none">
+            <svg><use href="#ic-hdd"/></svg>
+            <div class="disk-notice-text"><strong>Depuis le disque dur</strong>Streamé via le serveur local.</div>
+          </div>
+          <div class="file-info" id="video-info" style="display:none">
+            <svg><use href="#ic-film"/></svg>
+            <span class="fi-name" id="fi-name"></span>
+            <span class="fi-size" id="fi-size"></span>
+          </div>
+          <div style="display:flex;gap:.5rem;margin-top:.4rem">
+            <button type="button" id="btn-choose-video" onclick="App.openFilePicker('film')" style="flex:1;background:rgba(255,255,255,.06);border:1px dashed var(--border);color:var(--text-2);border-radius:var(--r);padding:.75rem 1rem;font-family:var(--font-b);font-size:12px;cursor:pointer;display:flex;align-items:center;gap:.5rem;justify-content:center">
+              <svg width="14" height="14"><use href="#ic-hdd"/></svg> Choisir depuis le disque dur
+            </button>
+            <button type="button" id="btn-change-video" onclick="App.openFilePicker('film-edit')" style="display:none;flex:1;background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--text-2);border-radius:var(--r);padding:.75rem 1rem;font-family:var(--font-b);font-size:12px;cursor:pointer;align-items:center;gap:.5rem;justify-content:center">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.5"/></svg> Changer de fichier
+            </button>
+          </div>
+        </div>
+
+        <button type="button" class="btn-submit" id="submit-btn">Enregistrer</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL : NOUVELLE CATÉGORIE ══ -->
+<div class="m-overlay" id="modal-newcat">
+  <div class="m-box" style="max-width:420px">
+    <div class="m-head">
+      <h2>NOUVELLE CATÉGORIE</h2>
+      <div class="m-close" id="modal-newcat-close"><svg><use href="#ic-x"/></svg></div>
+    </div>
+    <div class="m-body">
+      <div class="fg">
+        <label>Nom de la catégorie</label>
+        <input type="text" id="newcat-name" placeholder="Ex : À regarder, Mes favoris…" maxlength="50">
+      </div>
+      <div class="fg">
+        <label>Section</label>
+        <select id="newcat-section">
+          <option value="films">Films</option>
+          <option value="series">Séries</option>
+          <option value="anime">Anime</option>
+          <option value="all">Toutes les sections</option>
+        </select>
+      </div>
+      <button type="button" class="btn-submit" id="newcat-confirm">Créer la catégorie</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL : DISQUE DUR ══ -->
+<div class="m-overlay" id="modal-disk">
+  <div class="m-box">
+    <div class="m-head">
+      <h2>DISQUE DUR</h2>
+      <div class="m-close" id="modal-disk-close"><svg><use href="#ic-x"/></svg></div>
+    </div>
+    <div class="m-body">
+      <p style="color:var(--text-2);font-size:13px;margin-bottom:1.3rem;line-height:1.6">Sélectionne le disque dur ou le dossier contenant tes films.</p>
+      <div class="fg">
+        <label>Disques détectés</label>
+        <div class="volume-list" id="vol-list"></div>
+      </div>
+      <div class="fg" style="margin-top:1rem">
+        <label>Chemin personnalisé</label>
+        <input type="text" id="disk-path-input" placeholder="/Volumes/MonDisque/Films">
+        <div style="font-size:11px;color:var(--text-3);margin-top:4px">Les disques externes Mac sont dans <code>/Volumes/NomDuDisque</code></div>
+      </div>
+      <button type="button" class="btn-submit" id="disk-confirm-btn">Confirmer ce dossier</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL : SCAN ══ -->
+<div class="m-overlay" id="modal-scan">
+  <div class="m-box wide">
+    <div class="m-head">
+      <h2>FILMS TROUVÉS <span id="scan-count" style="font-family:var(--font-b);font-size:13px;font-weight:400;color:var(--text-3)"></span></h2>
+      <div class="m-close" id="modal-scan-close"><svg><use href="#ic-x"/></svg></div>
+    </div>
+    <div class="m-body">
+      <p style="color:var(--text-2);font-size:13px;margin-bottom:1rem">Clique sur <strong>Ajouter</strong> pour chaque film à intégrer.</p>
+      <div class="scan-list" id="scan-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL : DETAIL ══ -->
+<div class="m-overlay" id="modal-detail">
+  <div class="m-box wide" id="detail-box"></div>
+</div>
+
+<!-- ══ MODAL : CRÉER / MODIFIER UNE SÉRIE ══ -->
+<div class="m-overlay" id="modal-series">
+  <div class="m-box">
+    <div class="m-head">
+      <h2 id="modal-series-title">NOUVELLE SÉRIE</h2>
+      <div class="m-close" id="modal-series-close"><svg><use href="#ic-x"/></svg></div>
+    </div>
+    <div class="m-body">
+      <form id="series-form" onsubmit="return false">
+        <div class="fg">
+          <label>Titre *</label>
+          <input type="text" id="sf-title" placeholder="Ex : Breaking Bad" maxlength="200" required>
+        </div>
+        <div class="fg-row">
+          <div class="fg">
+            <label>Année de début</label>
+            <input type="number" id="sf-year" placeholder="2008" min="1888" max="2099">
+          </div>
+          <div class="fg">
+            <label>Section</label>
+            <select id="sf-section">
+              <option value="series">Séries</option>
+              <option value="anime">Anime</option>
+              <option value="animation">Animation</option>
+            </select>
+          </div>
+        </div>
+        <div class="fg">
+          <label>Genres</label>
+          <div class="genre-picker" id="sf-genre-picker"></div>
+        </div>
+        <div class="fg">
+          <label>Note /10</label>
+          <input type="number" id="sf-rating" placeholder="9.5" min="0" max="10" step="0.1">
+        </div>
+        <div class="fg">
+          <label>Synopsis</label>
+          <textarea id="sf-description" placeholder="Description de la série…" rows="3"></textarea>
+        </div>
+        <div class="fg">
+          <label>Affiche <span style="color:var(--text-3);font-weight:400;letter-spacing:0;text-transform:none;font-size:10px">— nom du fichier dans <code>images/</code></span></label>
+          <div class="img-input-wrap">
+            <input type="text" id="sf-poster-name" placeholder="ex: breaking-bad-cover.jpg" autocomplete="off">
+            <div class="poster-thumb" id="sf-poster-thumb">
+              <img id="sf-poster-img" src="" alt="" style="display:none;width:100%;height:100%;object-fit:cover">
+              <svg><use href="#ic-film"/></svg>
+            </div>
+          </div>
+        </div>
+        <div class="fg">
+          <label>Image paysage <span style="color:var(--text-3);font-weight:400;letter-spacing:0;text-transform:none;font-size:10px">— pour le bandeau héro</span></label>
+          <input type="text" id="sf-backdrop-name" placeholder="ex: breaking-bad-backdrop.jpg" autocomplete="off">
+          <div class="backdrop-preview-wrap" id="sf-backdrop-wrap" style="display:none;margin-top:.5rem">
+            <img id="sf-backdrop-img" src="" alt="">
+          </div>
+        </div>
+        <div class="fg">
+          <label>Logo <span style="color:var(--text-3);font-weight:400;letter-spacing:0;text-transform:none;font-size:10px">— PNG transparent, remplace le titre sur la carte</span></label>
+          <input type="text" id="sf-logo-name" placeholder="ex: breaking-bad-logo.png" autocomplete="off">
+          <div id="sf-logo-wrap" style="display:none;margin-top:.5rem;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r);padding:.8rem;text-align:center">
+            <img id="sf-logo-img" src="" alt="" style="max-height:60px;max-width:100%;object-fit:contain">
+          </div>
+        </div>
+        <!-- Toggle sans saison -->
+        <div style="display:flex;align-items:center;gap:.6rem;padding:.6rem .8rem;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:var(--r);margin-bottom:.5rem">
+          <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;font-family:var(--font-b);font-size:12px;color:var(--text-2);font-weight:400;text-transform:none;letter-spacing:0;flex:1">
+            <input type="checkbox" id="sf-no-season" style="accent-color:var(--accent);width:14px;height:14px;cursor:pointer;flex-shrink:0">
+            <span>Série sans saison</span>
+          </label>
+          <span style="font-size:10px;color:var(--text-3);font-family:var(--font-b)">Les épisodes seront listés directement sans bloc "Saison X"</span>
+        </div>
+        <button type="button" class="btn-submit" id="sf-submit">Créer la série</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL : AJOUTER UN ÉPISODE ══ -->
+<div class="m-overlay" id="modal-episode">
+  <div class="m-box">
+    <div class="m-head">
+      <h2 id="modal-ep-title">AJOUTER UN ÉPISODE</h2>
+      <div class="m-close" id="modal-ep-close"><svg><use href="#ic-x"/></svg></div>
+    </div>
+    <div class="m-body">
+
+      <!-- Choix de la série -->
+      <div class="fg" id="ep-series-pick-group">
+        <label>Série *</label>
+        <div class="ep-series-search-wrap">
+          <input type="text" id="ep-series-search" placeholder="Rechercher ou créer une série…" autocomplete="off">
+          <div class="ep-series-dropdown" id="ep-series-dropdown" style="display:none"></div>
+        </div>
+        <div class="ep-series-selected" id="ep-series-selected" style="display:none">
+          <div class="ep-series-selected-info" id="ep-series-selected-info"></div>
+          <button type="button" class="ep-series-change" id="ep-series-change">Changer</button>
+        </div>
+      </div>
+
+      <!-- Saison / Épisode -->
+      <div class="fg-row">
+        <div class="fg">
+          <label>Saison *</label>
+          <input type="number" id="ep-season" value="1" min="1" max="99">
+        </div>
+        <div class="fg">
+          <label>Épisode *</label>
+          <input type="number" id="ep-number" value="1" min="1" max="999">
+        </div>
+      </div>
+
+      <div class="fg">
+        <label>Titre de l'épisode <span style="color:var(--text-3);font-weight:400;letter-spacing:0;text-transform:none;font-size:10px">— optionnel</span></label>
+        <input type="text" id="ep-title" placeholder="Ex : Pilote, Le début…">
+      </div>
+
+      <!-- Fichier vidéo -->
+      <div class="fg">
+        <label>Fichier vidéo</label>
+        <div class="ep-file-display" id="ep-file-display">
+          <div class="ep-file-icon"><svg width="20" height="20"><use href="#ic-film"/></svg></div>
+          <div>
+            <div class="ep-file-name" id="ep-file-name">Aucun fichier sélectionné</div>
+            <div class="ep-file-size" id="ep-file-size"></div>
+          </div>
+        </div>
+        <button type="button" class="btn-choose-disk" onclick="App.openFilePicker('episode')" style="margin-top:.6rem;width:100%;background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--text-2);border-radius:var(--r);padding:.65rem 1rem;font-family:var(--font-b);font-size:12px;cursor:pointer;display:flex;align-items:center;gap:.5rem;justify-content:center">
+          <svg width="14" height="14"><use href="#ic-hdd"/></svg> Choisir depuis le disque dur
+        </button>
+      </div>
+
+      <button type="button" class="btn-submit" id="ep-submit">Enregistrer l'épisode</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL : FICHE SÉRIE ══ -->
+<div class="m-overlay" id="modal-series-detail">
+  <div class="m-box wide" style="max-width:720px" id="series-detail-box"></div>
+</div>
+
+<!-- ══ PLAYER ══ -->
+<div id="player-wrap">
+  <video id="player-video"></video>
+  <div class="player-ui">
+    <div class="player-grad-top">
+      <button class="player-close-btn" id="player-close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+      <!-- Bouton recommencer depuis le début (visible uniquement si progression > 5min) -->
+      <button id="player-restart-btn" class="player-close-btn" style="display:none" title="Depuis le début">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.5"/></svg>
+      </button>
+      <!-- Bouton épisode suivant (apparaît en fin d'épisode) -->
+      <div id="player-next-ep-overlay" style="display:none;position:absolute;top:20px;right:20px">
+        <button id="player-next-ep-btn" style="
+          background:rgba(255,255,255,.15);backdrop-filter:blur(12px);
+          border:1px solid rgba(255,255,255,.3);border-radius:8px;
+          color:#fff;font-family:var(--font-b);font-size:13px;
+          padding:.65rem 1.1rem;cursor:pointer;
+          display:flex;align-items:center;gap:.5rem;
+          transition:background .2s;
+        ">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,4 15,12 5,20"/><line x1="19" y1="4" x2="19" y2="20" stroke="currentColor" stroke-width="2.5"/></svg>
+          Épisode suivant
+        </button>
+      </div>
+    </div>
+    <div class="player-center-zone" id="player-center-click"></div>
+    <div class="player-grad-bot">
+      <div class="player-progress-wrap">
+        <span class="player-time" id="player-time-cur">0:00</span>
+        <div class="player-progress" id="player-progress">
+          <div class="player-progress-fill" id="player-progress-fill" style="width:0%"></div>
+        </div>
+        <span class="player-time" id="player-time-dur">0:00</span>
+      </div>
+      <div class="player-btns">
+        <button class="player-btn" id="player-play-btn"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg></button>
+        <button class="player-btn sm" id="player-rewind-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 8.5A9 9 0 1 1 2 12"/><path d="M2 3v6h6"/><text x="12" y="16" text-anchor="middle" font-size="6.5" fill="currentColor" stroke="none" font-weight="700">10</text></svg></button>
+        <button class="player-btn sm" id="player-forward-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 8.5A9 9 0 1 0 22 12"/><path d="M22 3v6h-6"/><text x="12" y="16" text-anchor="middle" font-size="6.5" fill="currentColor" stroke="none" font-weight="700">10</text></svg></button>
+        <div class="player-vol-group">
+          <button class="player-btn sm" id="player-mute-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg></button>
+          <input class="player-vol" type="range" id="player-vol" min="0" max="1" step="0.02" value="1">
+        </div>
+
+        <!-- Boutons épisode précédent / suivant (séries uniquement) -->
+        <button class="player-btn sm" id="player-prev-ep" style="display:none" title="Épisode précédent">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="19,20 9,12 19,4" fill="currentColor" stroke="none"/>
+            <line x1="5" y1="4" x2="5" y2="20" stroke-width="2.5"/>
+          </svg>
+        </button>
+        <button class="player-btn sm" id="player-next-ep" style="display:none" title="Épisode suivant">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="5,4 15,12 5,20" fill="currentColor" stroke="none"/>
+            <line x1="19" y1="4" x2="19" y2="20" stroke-width="2.5"/>
+          </svg>
+        </button>
+
+        <div class="player-center-title" id="player-center-title"></div>
+        <div class="player-spacer"></div>
+
+        <!-- Bouton piste audio (Safari) -->
+        <div class="player-menu-wrap" id="player-audio-btn" style="display:none">
+          <button class="player-btn sm player-menu-trigger" title="Piste audio">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
+            </svg>
+          </button>
+          <div class="player-menu" id="player-audio-menu">
+            <div class="player-menu-title">Piste audio</div>
+          </div>
+        </div>
+
+        <!-- Bouton sous-titres -->
+        <div class="player-menu-wrap" id="player-sub-btn" style="display:none">
+          <button class="player-btn sm player-menu-trigger" title="Sous-titres">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="4" width="20" height="16" rx="2"/><path d="M7 15h4m4 0h2"/><path d="M7 11h2m4 0h5"/>
+            </svg>
+          </button>
+          <div class="player-menu" id="player-sub-menu">
+            <div class="player-menu-title">Sous-titres</div>
+          </div>
+        </div>
+
+        <button class="player-btn sm" id="player-fs-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOASTS -->
+<!-- Barre de navigation flottante mobile -->
+<div id="mobile-tab-bar" style="display:none">
+  <div class="mob-tab active" data-section="home">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+    Accueil
+  </div>
+  <div class="mob-tab" data-section="films">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18 4l2 4h-3l-2-4h-2l2 4h-3l-2-4H8l2 4H7L5 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V4h-4z"/></svg>
+    Films
+  </div>
+  <div class="mob-tab" data-section="series">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M21 3H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h5v2h8v-2h5c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 14H3V5h18v12z"/></svg>
+    Séries
+  </div>
+  <div class="mob-tab" data-section="anime">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg>
+    Anime
+  </div>
+  <div class="mob-tab" data-section="animation">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg>
+    Animation
+  </div>
+</div>
+
+<div id="toast-container"></div>
+
+<!-- ══ MODAL : FILE PICKER (disque dur) ══ -->
+<div class="m-overlay" id="modal-filepicker">
+  <div class="m-box wide" style="max-width:580px">
+    <div class="m-head">
+      <h2>CHOISIR UN FICHIER <span style="font-family:var(--font-b);font-size:12px;font-weight:400;color:var(--text-3)">depuis le disque dur</span></h2>
+      <div class="m-close" id="modal-filepicker-close"><svg><use href="#ic-x"/></svg></div>
+    </div>
+    <div class="m-body" style="padding-top:.8rem">
+
+      <!-- Sélecteur de disque -->
+      <div id="fp-disk-bar" style="display:none;flex-direction:column;gap:.5rem;margin-bottom:1rem">
+        <div style="display:flex;align-items:center;gap:.6rem;padding:.7rem .9rem;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r)">
+          <svg width="15" height="15" style="color:var(--text-3);flex-shrink:0"><use href="#ic-hdd"/></svg>
+          <select id="fp-disk-select" style="flex:1;min-width:0;background:transparent;border:none;color:#fff;font-family:var(--font-b);font-size:12px;cursor:pointer;outline:none"></select>
+          <button onclick="App.fpSwitchDisk()" style="flex-shrink:0;background:var(--accent);color:#fff;border:none;padding:.35rem .8rem;border-radius:4px;font-family:var(--font-b);font-size:12px;cursor:pointer;white-space:nowrap">Utiliser ce disque</button>
+        </div>
+      </div>
+
+      <!-- Barre de recherche -->
+      <div style="position:relative;margin-bottom:.8rem">
+        <svg width="14" height="14" style="position:absolute;left:.8rem;top:50%;transform:translateY(-50%);color:var(--text-3)"><use href="#ic-search"/></svg>
+        <input type="text" id="fp-search" placeholder="Rechercher un fichier…" autocomplete="off"
+          style="width:100%;padding:.6rem .8rem .6rem 2.2rem;background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:var(--r);color:#fff;font-family:var(--font-b);font-size:13px;box-sizing:border-box">
+      </div>
+
+      <!-- Liste des fichiers -->
+      <div class="fp-list" id="fp-list" style="max-height:340px;overflow-y:auto;display:flex;flex-direction:column;gap:.4rem"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL : FLUX SÉRIE (étapes 1 & 2) ══ -->
+<div class="m-overlay" id="modal-series-flow">
+  <div class="m-box" id="series-flow-box" style="max-width:520px"></div>
+</div>
+
+<script src="js/series.js"></script>
+<script src="js/app.js"></script>
+
+<!-- ══ MODAL : CRÉER / MODIFIER UNE COLLECTION ══ -->
+<div class="m-overlay" id="modal-collection">
+  <div class="m-box" style="max-width:540px">
+    <div class="m-head">
+      <h2 id="modal-collection-title">NOUVELLE COLLECTION</h2>
+      <div class="m-close" id="modal-collection-close"><svg><use href="#ic-x"/></svg></div>
+    </div>
+    <div class="m-body">
+      <div class="fg">
+        <label>Titre *</label>
+        <input type="text" id="col-title" placeholder="Ex : La Trilogie du Parrain" maxlength="200">
+      </div>
+      <div class="fg">
+        <label>Description</label>
+        <textarea id="col-description" placeholder="Présentation de la collection…" rows="3" style="resize:vertical"></textarea>
+      </div>
+      <div class="fg-row">
+        <div class="fg">
+          <label>Année</label>
+          <input type="number" id="col-year" placeholder="1972" min="1888" max="2099">
+        </div>
+        <div class="fg">
+          <label>Réalisateur</label>
+          <input type="text" id="col-director" placeholder="Ex : Francis Ford Coppola">
+        </div>
+      </div>
+      <div class="fg">
+        <label>Logo <span style="color:var(--text-3);font-weight:400;letter-spacing:0;text-transform:none;font-size:10px">— PNG transparent, affiché au survol de la carte</span></label>
+        <input type="text" id="col-logo-name" placeholder="ex: godfather-logo.png" autocomplete="off">
+        <div id="col-logo-wrap" style="display:none;margin-top:.5rem;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r);padding:.8rem;text-align:center">
+          <img id="col-logo-img" src="" alt="" style="max-height:60px;max-width:100%;object-fit:contain">
+        </div>
+      </div>
+      <div class="fg">
+        <label>Image paysage <span style="color:var(--text-3);font-weight:400;letter-spacing:0;text-transform:none;font-size:10px">— bandeau dans la fiche détail</span></label>
+        <input type="text" id="col-backdrop-name" placeholder="ex: godfather-backdrop.jpg" autocomplete="off">
+        <div id="col-backdrop-wrap" style="display:none;margin-top:.5rem;border-radius:8px;overflow:hidden;max-height:120px">
+          <img id="col-backdrop-img" src="" alt="" style="width:100%;height:120px;object-fit:cover;display:block">
+        </div>
+      </div>
+
+      <!-- Films de la collection -->
+      <div class="fg">
+        <label>Films de la collection <span style="color:var(--text-3);font-weight:400;letter-spacing:0;text-transform:none;font-size:10px">— glisse pour réordonner</span></label>
+        <div id="col-films-list" class="col-films-list"></div>
+        <div style="position:relative;margin-top:.5rem">
+          <svg width="13" height="13" style="position:absolute;left:.8rem;top:50%;transform:translateY(-50%);color:var(--text-3)"><use href="#ic-search"/></svg>
+          <input type="text" id="col-film-search" placeholder="Rechercher un film à ajouter…" autocomplete="off"
+            style="width:100%;padding:.55rem .8rem .55rem 2.1rem;background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:var(--r);color:#fff;font-family:var(--font-b);font-size:12px;box-sizing:border-box">
+        </div>
+        <div id="col-film-dropdown" style="display:none;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);margin-top:.3rem;max-height:200px;overflow-y:auto"></div>
+      </div>
+
+      <button type="button" class="btn-submit" id="col-submit">Créer la collection</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL : DÉTAIL COLLECTION ══ -->
+<div class="m-overlay" id="modal-collection-detail">
+  <div class="m-box wide" style="max-width:700px" id="collection-detail-box"></div>
+</div>
+
+<!-- ─── ÉCRAN DE VEILLE ───────────────────────────────────────────────── -->
+<div id="screensaver" style="display:none">
+  <div id="ss-bg-a" class="ss-bg"></div>
+  <div id="ss-bg-b" class="ss-bg"></div>
+  <div class="ss-info">
+    <div id="ss-title" class="ss-title"></div>
+    <div id="ss-meta" class="ss-meta"></div>
+    <div id="ss-dots" class="ss-dots"></div>
+  </div>
+  <div class="ss-clock" id="ss-clock"></div>
+  <div class="ss-hint">Cliquez ou appuyez sur une touche pour revenir</div>
+</div>
+
+<!-- ─── MODALE RÉGLAGES ──────────────────────────────────────────────── -->
+<div class="m-overlay" id="modal-settings">
+  <div class="m-box" style="max-width:480px">
+    <div class="m-head">
+      <h2>RÉGLAGES</h2>
+      <div class="m-close" onclick="App.closeSettings()"><svg><use href="#ic-x"/></svg></div>
+    </div>
+    <div class="m-body">
+            <div class="settings-section">
+        <div class="settings-section-title">Écran de veille</div>
+        <div class="settings-row">
+          <div class="settings-row-info">
+            <div class="settings-row-label">Activer l'écran de veille</div>
+            <div class="settings-row-desc">Affiche les images des films après une période d'inactivité</div>
+          </div>
+          <label class="settings-toggle">
+            <input type="checkbox" id="setting-screensaver-enabled">
+            <span class="settings-toggle-track"><span class="settings-toggle-thumb"></span></span>
+          </label>
+        </div>
+        <div class="settings-row" id="setting-delay-row">
+          <div class="settings-row-info">
+            <div class="settings-row-label">Délai d'inactivité</div>
+            <div class="settings-row-desc" id="setting-delay-label">30 secondes</div>
+          </div>
+          <input type="range" id="setting-screensaver-delay" min="10" max="300" step="10" value="30"
+            style="width:120px;accent-color:var(--accent)">
+        </div>
+      </div>
+
+      <!-- Recadrage hero carrousel -->
+      <div class="settings-section admin-only">
+        <div class="settings-section-title">Carrousel — recadrage des images</div>
+        <div class="settings-row-desc" style="margin-bottom:.8rem;color:var(--text-3);font-size:11px">Ajuste la position de chaque image dans le cadre du carrousel</div>
+        <div id="hero-crop-editor">
+          <div style="color:var(--text-3);font-size:12px;font-family:var(--font-b)">Chargement…</div>
+        </div>
+      </div>
+
+      <!-- Couleur du thème -->
+      <div class="settings-section">
+        <div class="settings-section-title">Couleur du thème</div>
+        <div style="margin-bottom:1rem">
+          <div class="settings-row-label" style="margin-bottom:.4rem">Couleur accent</div>
+          <div class="settings-row-desc" style="margin-bottom:.9rem">Couleur des boutons, bordures et effets du site</div>
+          <div class="theme-swatches" id="theme-swatches">
+            <button class="theme-swatch active" data-color="#e50914" data-r="229" data-g="9"  data-b="20"  title="Rouge"    style="background:#e50914"></button>
+            <button class="theme-swatch"        data-color="#6366f1" data-r="99"  data-g="102" data-b="241" title="Indigo"   style="background:#6366f1"></button>
+            <button class="theme-swatch"        data-color="#10b981" data-r="16"  data-g="185" data-b="129" title="Émeraude" style="background:#10b981"></button>
+            <button class="theme-swatch"        data-color="#f59e0b" data-r="245" data-g="158" data-b="11"  title="Ambre"   style="background:#f59e0b"></button>
+            <button class="theme-swatch"        data-color="#ec4899" data-r="236" data-g="72"  data-b="153" title="Rose"    style="background:#ec4899"></button>
+            <button class="theme-swatch"        data-color="#06b6d4" data-r="6"   data-g="182" data-b="212" title="Cyan"    style="background:#06b6d4"></button>
+            <button class="theme-swatch"        data-color="#a855f7" data-r="168" data-g="85"  data-b="247" title="Violet"  style="background:#a855f7"></button>
+            <button class="theme-swatch"        data-color="#94a3b8" data-r="148" data-g="163" data-b="184" title="Ardoise" style="background:#94a3b8"></button>
+            <button class="theme-swatch theme-swatch-custom" id="theme-swatch-custom" title="Personnalisé">
+              <span>+</span>
+            </button>
+          </div>
+          <div id="theme-custom-picker" style="display:none;margin-top:1rem">
+            <div class="tcp-wrap">
+              <canvas id="tcp-wheel" width="200" height="200" class="tcp-wheel"></canvas>
+              <div class="tcp-wheel-cursor" id="tcp-wheel-cursor"></div>
+            </div>
+            <div class="tcp-brightness-row">
+              <canvas id="tcp-brightness" width="200" height="16" class="tcp-brightness"></canvas>
+              <div class="tcp-brightness-cursor" id="tcp-brightness-cursor"></div>
+            </div>
+            <div class="tcp-preview-row">
+              <div class="tcp-preview-swatch" id="tcp-preview-swatch"></div>
+              <div class="tcp-preview-hex" id="tcp-preview-hex">#e50914</div>
+              <button class="tcp-apply-btn" id="tcp-apply-btn">Appliquer</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Grille interactive -->
+      <div class="settings-section">
+        <div class="settings-section-title">Effets visuels</div>
+        <div class="settings-row">
+          <div class="settings-row-info">
+            <div class="settings-row-label">Grille interactive</div>
+            <div class="settings-row-desc">Cases animées au passage de la souris</div>
+          </div>
+          <label class="settings-toggle">
+            <input type="checkbox" id="setting-grid-enabled">
+            <span class="settings-toggle-track"><span class="settings-toggle-thumb"></span></span>
+          </label>
+        </div>
+        <div class="settings-row" id="setting-burst-row">
+          <div class="settings-row-info">
+            <div class="settings-row-label">Zone d'apparition</div>
+            <div class="settings-row-desc" id="setting-burst-label">Condensé</div>
+          </div>
+          <input type="range" id="setting-burst-radius" min="0.5" max="4" step="0.5" value="1.5"
+            style="width:110px;accent-color:var(--accent)">
+        </div>
+        <div class="settings-row">
+          <div class="settings-row-info">
+            <div class="settings-row-label">Halo lumineux</div>
+            <div class="settings-row-desc">Lueur rouge qui suit le curseur</div>
+          </div>
+          <label class="settings-toggle">
+            <input type="checkbox" id="setting-halo-enabled">
+            <span class="settings-toggle-track"><span class="settings-toggle-thumb"></span></span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Mode basse qualité -->
+      <div class="settings-section">
+        <div class="settings-section-title">Performance</div>
+        <div class="settings-row">
+          <div class="settings-row-info">
+            <div class="settings-row-label">Mode économie de performances</div>
+            <div class="settings-row-desc">Désactive les animations, la grille, le halo et les effets visuels pour réduire les lags</div>
+          </div>
+          <label class="settings-toggle">
+            <input type="checkbox" id="setting-low-quality">
+            <span class="settings-toggle-track"><span class="settings-toggle-thumb"></span></span>
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
