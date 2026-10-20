@@ -2169,7 +2169,7 @@ const App = (() => {
       ? `<div class="detail-title-logo"><img class="detail-logo-img" src="${esc(_detailLogoSrc)}" alt="${esc(m.title)}" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"><div class="detail-title" style="display:none">${esc(m.title)}</div></div>`
       : `<div class="detail-title">${esc(m.title)}</div>`;
     $('detail-box').innerHTML=`
-      <div class="detail-back">${bs?`<img src="${esc(bs)}" alt="">`:'<div class="detail-back-empty"></div>'}<div class="detail-back-grad"></div><div class="detail-x" onclick="App.closeDetail()">${svg('ic-x')}</div></div>
+      <div class="detail-back">${bs?`<img src="${esc(bs)}" alt=""${ps&&ps!==bs?` onerror="this.onerror=null;this.src='${esc(ps).replace(/'/g,'%27')}'"`:''}>`:'<div class="detail-back-empty"></div>'}<div class="detail-back-grad"></div><div class="detail-x" onclick="App.closeDetail()">${svg('ic-x')}</div></div>
       <div class="detail-body">
         ${_detailTitleHtml}
         <div class="detail-meta">
@@ -2256,6 +2256,9 @@ const App = (() => {
           } else {
             img.style.objectPosition = 'center 25%';
           }
+          // Image de fond absente du dossier images/ → l'affiche à la place
+          const poster = imgUrl(m.poster);
+          img.onerror = poster && src !== poster ? () => { img.onerror = null; img.src = poster; } : null;
           img.src = src;
         };
         applyBg(a, heroSrc, bgPos, bgSize);
@@ -2295,7 +2298,11 @@ const App = (() => {
     heroIdx=0; $('hero').style.display='flex'; setHeroSlide(heroPool[0]); buildHeroProgress();
     if(heroPool.length>1) startFill();
   };
-  const stopHero=()=>{ cancelAnimationFrame(heroProgress); $('hero').style.display='none'; };
+  const stopHero=()=>{
+    cancelAnimationFrame(heroProgress); $('hero').style.display='none';
+    // Toute page autre que l'accueil : sur mobile, la classe page-home garde la bannière affichée
+    if (page !== 'home') document.body.classList.remove('page-home');
+  };
 
   // ── MA LISTE (propre à chaque compte) ──
   const _mlKey = (kind, id) => kind + ':' + id;
