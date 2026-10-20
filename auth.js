@@ -242,6 +242,29 @@ const resetPassword = (userId, { allowAdmin = false } = {}) => {
   return { ok: true, password, username: u.username };
 };
 
+// ─── LIENS VIDÉO SIGNÉS ───────────────────────────────────────────────────────
+// Pour diffuser sur une TV (AirPlay, Chromecast) : c'est la TV qui charge la vidéo,
+// sans le cookie de connexion. Le lien est propre à une personne et à un fichier.
+const MEDIA_LINK_TTL = 12 * 3600 * 1000;
+if (!db.mediaSecret) { db.mediaSecret = crypto.randomBytes(32).toString('hex'); persist(); }
+const mediaSig = (userId, rel, exp) =>
+  crypto.createHmac('sha256', db.mediaSecret).update(`${userId}|${rel}|${exp}`).digest('base64url');
+
+const mediaLinkQuery = (u, rel) => {
+  const exp = Date.now() + MEDIA_LINK_TTL;
+  return `u=${encodeURIComponent(u.id)}&e=${exp}&s=${mediaSig(u.id, rel, exp)}`;
+};
+
+// Compte (approuvé) correspondant à un lien signé valide, sinon null
+const userFromMediaLink = (q, rel) => {
+  const id = q.get('u'), exp = Number(q.get('e')), sig = q.get('s') || '';
+  if (!id || !(exp > Date.now())) return null;
+  const expected = Buffer.from(mediaSig(id, rel, exp)), given = Buffer.from(sig);
+  if (expected.length !== given.length || !crypto.timingSafeEqual(expected, given)) return null;
+  const u = findById(id);
+  return u && u.status === 'approved' ? u : null;
+};
+
 // ─── ADMINISTRATION ───────────────────────────────────────────────────────────
 const listUsers = () => db.users.map(publicUser).sort((a, b) => b.createdAt - a.createdAt);
 // Badge admin : demandes d'accès + mots de passe oubliés
@@ -285,4 +308,5 @@ module.exports = {
   needsSetup, setupAdmin, register, login, createSession, currentUser, logout,
   listUsers, pendingCount, decide, savePersonal, publicUser, usernameOf,
   changePassword, requestReset, resetPassword, findByName, setInMyList,
+  mediaLinkQuery, userFromMediaLink,
 };

@@ -103,6 +103,12 @@ Le site est réservé aux comptes que tu as validés.
 
 Chaque compte a sa propre liste de films et séries à regarder plus tard : bouton **+** au survol d'une affiche (toujours visible sur téléphone), ou « Ma liste » sur la fiche. On la retrouve dans l'onglet « Ma liste » et en rangée sur l'accueil.
 
+### Téléphone, tablette et TV
+
+- **Téléphone et tablette** : barre de navigation en bas de l'écran (jusqu'à 900 px de large, donc aussi en paysage et sur iPad).
+- **Diffuser sur la TV** : dans le lecteur, le bouton d'écran apparaît quand une Apple TV (AirPlay, sur Safari) ou un Chromecast (sur Chrome) est disponible. La TV reçoit un lien vidéo signé, valable 12 heures et limité à ce film. Les sous-titres ne suivent pas.
+- **Navigateur de la TV ou clavier** : les flèches déplacent la sélection, Entrée ouvre, Retour (ou Échap / ⌫) ferme ou revient à l'accueil. Dans le lecteur : flèches = avancer/reculer et volume, Entrée ou Lecture/Pause = pause. Si le texte est trop petit sur la TV, utilise le zoom du navigateur.
+
 ### Mots de passe
 
 - **Changer son mot de passe** : initiale → « Mon compte ». Les autres appareils connectés sont déconnectés.

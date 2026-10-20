@@ -1754,34 +1754,9 @@ video::cue {
 
 
 
-/* ══════════════════════════════════════════════════════════════
-   📱 MOBILE — interface adaptée iPhone / petit écran
-   ══════════════════════════════════════════════════════════════ */
-@media (max-width: 500px) {
 
-  /* ── Navbar top ── */
-  #navbar { z-index: 100;
-    top: 0; bottom: auto;
-    height: 52px;
-    padding: 0 .9rem;
-    display: flex; align-items: center; gap: .5rem;
-    background: linear-gradient(to bottom, rgba(8,8,8,.9) 0%, transparent 100%) !important;
-    flex-direction: row;
-    justify-content: space-between;
-  }
-  #navbar.solid { background: rgba(10,10,10,.95) !important; backdrop-filter: blur(12px); }
-  #navbar.has-banner { top: 40px; }
-  .nav-tabs { display: none !important; }
-  .nav-logo { font-size: 1.3rem; letter-spacing: 3px; flex-shrink: 0; }
-  .nav-search { display: flex; flex: 1; margin: 0 .4rem; }
-  .nav-search-bar { width: 100% !important; padding: 5px 10px; }
-  .nav-search-bar:focus-within { width: 100% !important; }
-  .nav-actions { gap: .3rem; flex-shrink: 0; }
-  .nav-btn { padding: .3rem .55rem; font-size: 11px; }
-  .nav-btn-primary .nav-btn-text { display: none; }
-  .nav-btn-primary::after { content: '+'; font-size: 17px; font-weight: 300; line-height: 1; margin-left: 1px; }
-  #btn-transfer svg { width: 13px; height: 13px; }
-
+/* ── Barre de navigation flottante (téléphone, tablette, petit écran) ── */
+@media (max-width: 900px) {
   /* ── Barre flottante en bas ── */
   #mobile-tab-bar {
     position: fixed !important;
@@ -1814,6 +1789,40 @@ video::cue {
   .mob-tab.active { background: rgba(255,255,255,.12); color: #fff; }
   .mob-tab.active svg { transform: scale(1.1); }
   .mob-tab:active { transform: scale(.92); }
+
+  #main-content { padding-bottom: 90px; }
+  /* Masquée quand une fiche, une fenêtre ou le lecteur est ouvert */
+  body:has(.m-overlay.open) #mobile-tab-bar,
+  body:has(#player-wrap.open) #mobile-tab-bar { display: none !important; }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   📱 MOBILE — interface adaptée iPhone / petit écran
+   ══════════════════════════════════════════════════════════════ */
+@media (max-width: 500px) {
+
+  /* ── Navbar top ── */
+  #navbar { z-index: 100;
+    top: 0; bottom: auto;
+    height: 52px;
+    padding: 0 .9rem;
+    display: flex; align-items: center; gap: .5rem;
+    background: linear-gradient(to bottom, rgba(8,8,8,.9) 0%, transparent 100%) !important;
+    flex-direction: row;
+    justify-content: space-between;
+  }
+  #navbar.solid { background: rgba(10,10,10,.95) !important; backdrop-filter: blur(12px); }
+  #navbar.has-banner { top: 40px; }
+  .nav-tabs { display: none !important; }
+  .nav-logo { font-size: 1.3rem; letter-spacing: 3px; flex-shrink: 0; }
+  .nav-search { display: flex; flex: 1; margin: 0 .4rem; }
+  .nav-search-bar { width: 100% !important; padding: 5px 10px; }
+  .nav-search-bar:focus-within { width: 100% !important; }
+  .nav-actions { gap: .3rem; flex-shrink: 0; }
+  .nav-btn { padding: .3rem .55rem; font-size: 11px; }
+  .nav-btn-primary .nav-btn-text { display: none; }
+  .nav-btn-primary::after { content: '+'; font-size: 17px; font-weight: 300; line-height: 1; margin-left: 1px; }
+  #btn-transfer svg { width: 13px; height: 13px; }
 
   /* ── Layout ── */
   #main-content { padding: .6rem 0 90px; }
@@ -1859,6 +1868,8 @@ video::cue {
   /* ── Sections — scroll horizontal comme Netflix ── */
   .movie-section { position:relative; z-index:1; margin-bottom: 1.2rem; }
   .section-header { padding: 0 .75rem; margin-bottom: .5rem; }
+  .section-page-header, .genre-section-title, .search-dedicated-results-header, .req-search-ask { padding-left: .75rem; padding-right: .75rem; }
+  .m-head h2 { font-size: 20px; }
   .section-title { font-size: 13px; }
   .section-see-all { font-size: 11px; }
 
@@ -1939,7 +1950,7 @@ video::cue {
 
   /* ── Player ── */
   .player-btns { padding: .5rem .6rem; }
-  .player-center-title { font-size: 11px; }
+  .player-center-title { display: none; }
 
   /* ── Épisodes ── */
   .ep-thumb { width: 100px; min-width: 100px; height: 56px; }
@@ -2975,3 +2986,21 @@ body.lq .toast { animation:none !important; opacity:1 !important; transform:none
 .mylist-btn.on svg { color:var(--accent); }
 .mylist-empty p { max-width:420px; margin:.6rem auto 0; color:var(--text-3); font-size:13px; line-height:1.6; }
 .mylist-empty p svg { width:12px; height:12px; vertical-align:-1px; opacity:1; margin:0; }
+
+/* ── Navigation aux flèches (clavier, télécommande) ── */
+body.kbd-nav :focus-visible { outline:3px solid #fff; outline-offset:3px; border-radius:10px; }
+body.kbd-nav .movie-card:focus-visible, body.kbd-nav .genre-card:focus-visible, body.kbd-nav .collection-card:focus-visible {
+  outline:3px solid #fff; outline-offset:4px; transform:scale(1.05); z-index:5;
+  box-shadow:0 12px 40px rgba(0,0,0,.7);
+}
+body.kbd-nav .movie-card:focus-visible .mc-hover-overlay { opacity:1; }
+body.kbd-nav .movie-card:focus-visible .mc-bg { transform:scale(1.07); }
+body.kbd-nav .nav-tab:focus-visible, body.kbd-nav .mob-tab:focus-visible { outline-offset:1px; }
+body.kbd-nav .hero-btn-play:focus-visible { outline-color:#fff; box-shadow:0 0 0 6px rgba(var(--accent-rgb),.35); }
+
+/* ── Grand écran (TV) : fiches plus larges, lisibles de loin ── */
+@media (min-width: 1600px) {
+  #detail-box { max-width: 960px !important; }
+  #series-detail-box { max-width: 1040px !important; }
+  .detail-desc, .series-detail-desc { font-size: 16px; line-height: 1.7; }
+}

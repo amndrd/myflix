@@ -1264,10 +1264,36 @@ const App = (() => {
   // ── PLAYER ──
   const fmt=s=>{ if(isNaN(s)||s==null) return '0:00'; const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sec=Math.floor(s%60); return h>0?`${h}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`:`${m}:${String(sec).padStart(2,'0')}`; };
 
+  let _initSprite = () => {}; // aperçus de la barre de lecture, défini dans initPlayerControls
+
+  // Lien signé de la vidéo en cours, utilisé seulement pour la diffuser sur une TV
+  // (la TV charge la vidéo elle-même, sans le cookie de connexion)
+  const _prepareCastSrc = rel => {
+    const v = $('player-video'); v._signedSrc = null; v._castRel = rel;
+    apiGet('/api/media-url?rel=' + encodeURIComponent(rel)).then(d => { if (d?.url && v._castRel === rel) v._signedSrc = API + d.url; });
+  };
   const initPlayerControls=()=>{
     const wrap=$('player-wrap'),video=$('player-video'),progress=$('player-progress'),fill=$('player-progress-fill');
     const playBtn=$('player-play-btn'),muteBtn=$('player-mute-btn'),volInput=$('player-vol');
     const timeCur=$('player-time-cur'),timeDur=$('player-time-dur'),fsBtn=$('player-fs-btn');
+
+    // ── Diffuser sur la TV (AirPlay sur Safari, Chromecast sur Chrome) ──
+    video.setAttribute('x-webkit-airplay', 'allow');
+    const castBtn = $('player-cast-btn');
+    const showCast = on => { castBtn.style.display = on ? '' : 'none'; };
+    if (video.remote?.watchAvailability) video.remote.watchAvailability(showCast).catch(() => showCast(false));
+    else if (window.WebKitPlaybackTargetAvailabilityEvent)
+      video.addEventListener('webkitplaybacktargetavailabilitychanged', e => showCast(e.availability === 'available'));
+    castBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      if (video._signedSrc && !video.src.includes('&s=')) {
+        const t = video.currentTime, playing = !video.paused;
+        video.src = video._signedSrc;
+        video.addEventListener('loadedmetadata', () => { video.currentTime = t; if (playing) video.play().catch(() => {}); }, { once: true });
+      }
+      if (video.remote?.prompt) video.remote.prompt().catch(() => {});
+      else video.webkitShowPlaybackTargetPicker?.();
+    });
     const rwBtn=$('player-rewind-btn'),fwBtn=$('player-forward-btn'),centerClick=$('player-center-click');
 
     let cursorTimer;
@@ -1330,6 +1356,7 @@ const App = (() => {
       else { const poll = async () => { const s=await apiGet(`/api/sprite-status?hash=${_spriteHash}`); if(s?.status==='ready') _loadSprite(s); else if(s?.status!=='error') setTimeout(poll,3000); }; setTimeout(poll,3000); }
     };
 
+    _initSprite = initSprite;
     const _loadSprite = (meta) => {
       _spriteMeta = meta;
       const img = new Image();
@@ -1434,7 +1461,12 @@ const App = (() => {
       if(!wrap.classList.contains('open')) return;
       if(['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName)) return;
       switch(e.key){
-        case ' ':case 'k':e.preventDefault();togglePlay();break;
+        case ' ':case 'k':case 'MediaPlayPause':e.preventDefault();togglePlay();break;
+        case 'Enter':if(e.target===document.body||e.target===video){e.preventDefault();togglePlay();}break;
+        case 'MediaPlay':video.play().catch(()=>{});break;
+        case 'MediaPause':case 'MediaStop':video.pause();break;
+        case 'MediaFastForward':video.currentTime=Math.min(video.duration||0,video.currentTime+10);break;
+        case 'MediaRewind':video.currentTime=Math.max(0,video.currentTime-10);break;
         case 'ArrowLeft':e.preventDefault();video.currentTime=Math.max(0,video.currentTime-10);break;
         case 'ArrowRight':e.preventDefault();video.currentTime=Math.min(video.duration||0,video.currentTime+10);break;
         case 'ArrowUp':e.preventDefault();video.volume=Math.min(1,video.volume+.1);volInput.value=video.volume;updateVolIcon();break;
@@ -1483,7 +1515,8 @@ const App = (() => {
     const src=`${API}/media/${m.videoRef.split('/').map(encodeURIComponent).join('/')}`;
     video.src=src; video.load(); video.play().catch(()=>{});
     startProgressWatcher(m.id);
-    initSprite(m.videoRef);
+    _initSprite(m.videoRef);
+    _prepareCastSrc(m.videoRef);
   };
   // ── PAGE DE FIN ────────────────────────────────────────────────────────────────
   const showEndScreen = (type, data) => {
@@ -2981,7 +3014,8 @@ const App = (() => {
     video.load();
     video.play().catch(()=>{});
     startProgressWatcher(epId, ep.seriesId);
-    initSprite(ep.videoRef);
+    _initSprite(ep.videoRef);
+    _prepareCastSrc(ep.videoRef);
 
     // Fin de l'épisode
     const onEpEnded = () => {
@@ -5798,6 +5832,89 @@ const App = (() => {
     return { start, stop, resetTimer, init };
   })();
 
+  // ── NAVIGATION AUX FLÈCHES (clavier, télécommande de TV) ───────────────────
+  // Les flèches déplacent le focus vers l'élément le plus proche dans cette direction,
+  // Entrée l'ouvre, Retour ferme ce qui est ouvert. Le lecteur garde ses propres touches.
+  const _NAV_TARGETS = 'button, a[href], input:not([type=hidden]), select, textarea, [onclick], .movie-card, .genre-card, .collection-card, .episode-item, .season-header, .mob-tab, .player-menu-item';
+  const _BACK_KEYS = new Set(['GoBack', 'BrowserBack']);
+  const _BACK_CODES = new Set([461, 10009]); // LG webOS, Samsung Tizen
+
+  const _navScope = () => {
+    const overlays = [...document.querySelectorAll('.m-overlay.open, #modal-access, #modal-requests, #modal-account')];
+    return overlays.sort((a, b) => (+getComputedStyle(b).zIndex || 0) - (+getComputedStyle(a).zIndex || 0))[0] || document;
+  };
+  const _navCandidates = () => [..._navScope().querySelectorAll(_NAV_TARGETS)].filter(el => {
+    if (el.closest('.movie-card') && !el.matches('.movie-card')) return false; // une carte = une seule cible
+    if (el.matches('.mc-hover-overlay') || el.disabled) return false;
+    if (el.closest('#player-wrap')) return false; // le lecteur a ses propres touches
+    const r = el.getBoundingClientRect();
+    return r.width > 4 && r.height > 4 && getComputedStyle(el).visibility !== 'hidden';
+  });
+
+  const _navMove = dir => {
+    const cands = _navCandidates(); if (!cands.length) return false;
+    const cur = document.activeElement;
+    if (!cur || cur === document.body || !cands.includes(cur)) {
+      // Premier appui : le bouton « Regarder » (accueil ou fiche), sinon le premier élément visible
+      const closeBtn = el => el.matches('.m-close, .detail-x, .series-detail-x');
+      const start = cands.find(el => el.matches('#hero-play, .hero-btn-play') && el.getBoundingClientRect().top >= 0)
+        || cands.find(el => { const r = el.getBoundingClientRect(); return !closeBtn(el) && r.top >= 60 && r.bottom <= innerHeight; })
+        || cands[0];
+      _navFocus(start); return true;
+    }
+    const r = cur.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    let best = null, bestScore = Infinity;
+    for (const el of cands) {
+      if (el === cur || cur.contains(el)) continue;
+      const q = el.getBoundingClientRect(), dx = q.left + q.width / 2 - cx, dy = q.top + q.height / 2 - cy;
+      const [main, side] = dir === 'ArrowRight' ? [dx, dy] : dir === 'ArrowLeft' ? [-dx, dy] : dir === 'ArrowDown' ? [dy, dx] : [-dy, dx];
+      if (main <= 4) continue;
+      const score = main + Math.abs(side) * 2;
+      if (score < bestScore) { bestScore = score; best = el; }
+    }
+    if (best) _navFocus(best);
+    return !!best;
+  };
+
+  const _navFocus = el => {
+    if (!el.matches('button, a[href], input, select, textarea') && !el.hasAttribute('tabindex')) el.setAttribute('tabindex', '0');
+    el.focus({ preventScroll: true });
+    el.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
+    // Garder un peu de marge sous la barre du haut
+    const top = el.getBoundingClientRect().top;
+    if (_navScope() === document && top < 90) window.scrollBy({ top: top - 110, behavior: 'smooth' });
+  };
+
+  const _initRemoteNav = () => {
+    document.addEventListener('keydown', e => {
+      if (e.altKey || e.ctrlKey || e.metaKey || e.defaultPrevented) return;
+      const inField = e.target.matches?.('input, textarea, select');
+      const isBack = _BACK_KEYS.has(e.key) || _BACK_CODES.has(e.keyCode) || (e.key === 'Backspace' && !inField);
+      if (isBack) {
+        e.preventDefault();
+        const open = $('player-wrap').classList.contains('open') || _navScope() !== document || document.querySelector('.m-overlay.open');
+        if (open) document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+        else if (page !== 'home') goHome();
+        return;
+      }
+      if ($('player-wrap').classList.contains('open')) return; // flèches = avance / volume
+      if (!e.key.startsWith('Arrow')) {
+        // Entrée sur une carte ou un élément cliquable qui n'est pas un bouton
+        const el = document.activeElement;
+        if (e.key === 'Enter' && el && el !== document.body && !el.matches('button, a[href], input, select, textarea')) {
+          e.preventDefault();
+          (el.querySelector(':scope > .mc-hover-overlay') || el).click();
+        }
+        return;
+      }
+      if (inField && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) return; // déplacer le curseur du texte
+      document.body.classList.add('kbd-nav');
+      if (_navMove(e.key)) e.preventDefault();
+    });
+    // Revenir à la souris efface les contours de focus
+    document.addEventListener('mousemove', () => document.body.classList.remove('kbd-nav'), { passive: true });
+  };
+
   // ── COMPTE & ACCÈS ──────────────────────────────────────────────────────────
   const _refreshPendingBadge = async () => {
     const d = await apiGet('/api/auth/me'); if (!d?.user) return;
@@ -6126,6 +6243,7 @@ const App = (() => {
     document.body.classList.toggle('is-admin', isAdmin());
     _initAccountMenu();
     if (currentUser.mustChangePassword) openAccountPanel(true);
+    _initRemoteNav();
 
     window.addEventListener('scroll',()=>$('navbar').classList.toggle('solid',window.scrollY>40),{passive:true});
     initPlayerControls();
@@ -6440,7 +6558,7 @@ const App = (() => {
 
     // Barre de navigation mobile flottante
     const mobileBar = document.getElementById('mobile-tab-bar');
-    const isMobile = () => window.innerWidth <= 500;
+    const isMobile = () => window.innerWidth <= 900;
     const showMobileBar = () => { if (mobileBar) mobileBar.style.display = isMobile() ? 'flex' : 'none'; };
     showMobileBar();
     window.addEventListener('resize', showMobileBar);

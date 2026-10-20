@@ -517,6 +517,18 @@ const server = http.createServer((req, res) => {
 
   // ══ À PARTIR D'ICI : COMPTE APPROUVÉ OBLIGATOIRE ════════════════════════════
 
+  // Vidéo demandée par une TV (AirPlay, Chromecast) avec un lien signé, sans cookie
+  if (pathname.startsWith('/media/') && q.get('s') && !auth.currentUser(req)) {
+    const rel = pathname.slice('/media/'.length);
+    const u = auth.userFromMediaLink(q, rel);
+    if (!u) { res.writeHead(403); res.end('Lien expiré'); return; }
+    if (u.role !== 'admin' && !catalogRefs().has(rel)) { res.writeHead(403); res.end('Accès refusé'); return; }
+    const cfg = loadConfig();
+    const filePath = cfg.mediaPath && safeJoin(cfg.mediaPath, rel);
+    if (!filePath || !fs.existsSync(filePath)) { res.writeHead(404); res.end('Fichier introuvable'); return; }
+    return streamFile(req, res, filePath);
+  }
+
   const user = auth.currentUser(req);
   if (!user) {
     if (pathname.startsWith('/api/') || pathname.startsWith('/media/') || pathname.startsWith('/images/'))
@@ -542,6 +554,14 @@ const server = http.createServer((req, res) => {
     return jsonRes(res,{ user: auth.publicUser(user), ...(isAdmin
       ? { pendingCount: auth.pendingCount(), requestsCount: requests.pendingCount() }
       : { requestUpdates: requests.unseenCount(user.id) }) });
+  }
+
+  // Adresse de lecture d'une vidéo, signée pour pouvoir être diffusée sur une TV
+  if (pathname === '/api/media-url') {
+    const rel = q.get('rel') || '';
+    const f = mediaFile(rel);
+    if (f.error) return jsonRes(res,{error:f.error},f.status);
+    return jsonRes(res,{ url: '/media/' + rel.split('/').map(encodeURIComponent).join('/') + '?' + auth.mediaLinkQuery(user, rel) });
   }
 
   // ── Mon compte ──────────────────────────────────────────────────────────────
