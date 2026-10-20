@@ -2947,3 +2947,13 @@ body.lq .movie-card:hover,body.lq .series-card:hover,body.lq .genre-card:hover {
 body.lq #hero-border-canvas,body.lq #hero-border-glow,body.lq #cursor-halo,body.lq #grid-canvas { display:none !important; }
 body.lq #ss-bg-a,body.lq #ss-bg-b { animation:none !important; transform:none !important; }
 body.lq .toast { animation:none !important; opacity:1 !important; transform:none !important; }
+
+/* ── Mon compte ── */
+.account-id { display:flex; align-items:center; gap:.8rem; padding-bottom:1.2rem; margin-bottom:1.2rem; border-bottom:1px solid var(--border); }
+.account-note { font-size:13px; color:var(--text-2); margin-bottom:1.2rem; line-height:1.55; }
+.account-note.small { font-size:11px; color:var(--text-3); margin:.9rem 0 0; text-align:center; }
+.account-note a { color:var(--text-2); }
+.access-temp { margin-top:.6rem; padding:.6rem .75rem; border:1px solid rgba(var(--accent-rgb),.35); border-radius:8px; background:rgba(var(--accent-rgb),.06); font-size:12px; }
+.access-temp > div { display:flex; align-items:center; gap:.5rem; flex-wrap:wrap; }
+.access-temp code { font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:14px; font-weight:600; color:#fff; letter-spacing:.04em; user-select:all; }
+.access-temp p { margin-top:.35rem; color:var(--text-3); font-size:11px; }

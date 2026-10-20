@@ -117,14 +117,17 @@ const usernameOf = (id) => findById(id)?.username || 'Compte supprimé';
 const publicUser = (u) => ({
   id: u.id, username: u.username, role: u.role, status: u.status,
   message: u.message || '', createdAt: u.createdAt, decidedAt: u.decidedAt || null, lastLoginAt: u.lastLoginAt || null,
+  mustChangePassword: !!u.mustChangePassword, resetRequestedAt: u.resetRequestedAt || null,
 });
+
+const passwordError = (password) =>
+  password.length < 8 ? 'Mot de passe : 8 caractères minimum' : password.length > 200 ? 'Mot de passe trop long' : null;
 
 const validateCredentials = (username, password) => {
   username = String(username || '').trim();
   password = String(password || '');
   if (!USERNAME_RE.test(username)) return { error: "Nom d'utilisateur : 3 à 30 caractères (lettres, chiffres, espace, . _ -)" };
-  if (password.length < 8)   return { error: 'Mot de passe : 8 caractères minimum' };
-  if (password.length > 200) return { error: 'Mot de passe trop long' };
+  const err = passwordError(password); if (err) return { error: err };
   return { username, password };
 };
 
@@ -165,6 +168,7 @@ const login = (username, password) => {
   if (!u || !ok) return { error: 'Identifiants incorrects' };
   if (u.status !== 'approved') return { status: u.status };
   u.lastLoginAt = Date.now();
+  delete u.resetRequestedAt; // mot de passe retrouvé
   return { token: createSession(u), user: u };
 };
 
@@ -192,13 +196,56 @@ const logout = (req) => {
   if (token && db.sessions[sha256(token)]) { delete db.sessions[sha256(token)]; persist(); }
 };
 
-const dropSessionsOf = (userId) => {
-  for (const [k, s] of Object.entries(db.sessions)) if (s.userId === userId) delete db.sessions[k];
+// keepToken : la session en cours reste ouverte (changement de mot de passe)
+const dropSessionsOf = (userId, keepToken) => {
+  const keep = keepToken ? sha256(keepToken) : null;
+  for (const [k, s] of Object.entries(db.sessions)) if (s.userId === userId && k !== keep) delete db.sessions[k];
+};
+
+// ─── MOTS DE PASSE : changement, oubli, réinitialisation ─────────────────────
+// Après une réinitialisation, l'ancien mot de passe (temporaire) n'est pas redemandé
+const changePassword = (req, u, current, next) => {
+  next = String(next || '');
+  if (!u.mustChangePassword && !verifyPassword(String(current || ''), u.passwordHash)) return { error: 'Mot de passe actuel incorrect' };
+  const err = passwordError(next); if (err) return { error: err };
+  if (verifyPassword(next, u.passwordHash)) return { error: "Choisis un mot de passe différent de l'actuel" };
+  u.passwordHash = hashPassword(next);
+  delete u.mustChangePassword; delete u.resetRequestedAt;
+  dropSessionsOf(u.id, readCookie(req, COOKIE_NAME)); // les autres appareils sont déconnectés
+  persist();
+  return { ok: true };
+};
+
+// Mot de passe oublié : on prévient l'admin. Renvoie le compte seulement s'il est concerné.
+const requestReset = (username) => {
+  const u = findByName(username);
+  if (!u || u.role === 'admin' || u.status !== 'approved' || u.resetRequestedAt) return null;
+  u.resetRequestedAt = Date.now(); persist();
+  return u;
+};
+
+// Lisible à l'oral ou par message : sans 0/o, 1/l/i
+const tempPassword = () => {
+  const abc = 'abcdefghjkmnpqrstuvwxyz23456789';
+  return [0, 1, 2].map(() => Array.from(crypto.randomBytes(4), b => abc[b % abc.length]).join('')).join('-');
+};
+
+// Nouveau mot de passe temporaire, à changer à la prochaine connexion
+const resetPassword = (userId, { allowAdmin = false } = {}) => {
+  const u = findById(userId);
+  if (!u) return { error: 'Compte introuvable' };
+  if (u.role === 'admin' && !allowAdmin) return { error: "Impossible de modifier le compte administrateur" };
+  const password = tempPassword();
+  u.passwordHash = hashPassword(password); u.mustChangePassword = true;
+  delete u.resetRequestedAt;
+  dropSessionsOf(u.id); persist();
+  return { ok: true, password, username: u.username };
 };
 
 // ─── ADMINISTRATION ───────────────────────────────────────────────────────────
 const listUsers = () => db.users.map(publicUser).sort((a, b) => b.createdAt - a.createdAt);
-const pendingCount = () => db.users.filter(u => u.status === 'pending').length;
+// Badge admin : demandes d'accès + mots de passe oubliés
+const pendingCount = () => db.users.filter(u => u.status === 'pending' || u.resetRequestedAt).length;
 
 // action : approve | reject | delete
 const decide = (userId, action) => {
@@ -206,7 +253,7 @@ const decide = (userId, action) => {
   if (!u) return { error: 'Compte introuvable' };
   if (u.role === 'admin') return { error: "Impossible de modifier le compte administrateur" };
   if (action === 'approve')     { u.status = 'approved'; u.decidedAt = Date.now(); }
-  else if (action === 'reject') { u.status = 'rejected'; u.decidedAt = Date.now(); dropSessionsOf(u.id); }
+  else if (action === 'reject') { u.status = 'rejected'; u.decidedAt = Date.now(); delete u.resetRequestedAt; dropSessionsOf(u.id); }
   else if (action === 'delete') { db.users = db.users.filter(x => x.id !== u.id); dropSessionsOf(u.id); }
   else return { error: 'Action inconnue' };
   persist();
@@ -224,4 +271,5 @@ module.exports = {
   COOKIE_NAME, isLocalRequest, sessionCookie, rateLimited, notify,
   needsSetup, setupAdmin, register, login, createSession, currentUser, logout,
   listUsers, pendingCount, decide, savePersonal, publicUser, usernameOf,
+  changePassword, requestReset, resetPassword, findByName,
 };

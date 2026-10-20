@@ -12,6 +12,7 @@ myflix/
 ├── server.js               ← Serveur (Node.js, aucune dépendance)
 ├── auth.js                 ← Comptes, sessions, demandes d'accès
 ├── requests.js             ← Demandes de films
+├── reset-password.js       ← Réinitialiser un mot de passe (terminal)
 ├── index.html              ← L'interface MyFlix
 ├── login.html              ← Page de connexion / demande d'accès
 ├── css/style.css
@@ -97,6 +98,12 @@ Le site est réservé aux comptes que tu as validés.
 - **Valider une demande** : clique sur ton initiale en haut à droite → « Demandes d'accès » → Accepter / Refuser. Au même endroit, tu peux retirer l'accès d'un membre (la déconnexion est immédiate).
 - **Notification sur téléphone (facultatif)** : installe l'appli ntfy, abonne-toi à un nom de sujet difficile à deviner, puis ajoute-le dans `myflix-config.json` : `"ntfyTopic": "ton-sujet-secret"`.
 - Seul l'administrateur peut ajouter, modifier ou supprimer du contenu. Chaque membre a sa propre progression de lecture.
+
+### Mots de passe
+
+- **Changer son mot de passe** : initiale → « Mon compte ». Les autres appareils connectés sont déconnectés.
+- **Un membre a oublié le sien** : il clique « Mot de passe oublié ? » sur la page de connexion, tu es prévenu. Dans « Demandes d'accès », clique « Nouveau mot de passe » : un mot de passe temporaire s'affiche, envoie-le lui. À la connexion, le site lui demande d'en choisir un nouveau.
+- **Tu as oublié le tien** : arrête le serveur, puis dans le Terminal, depuis le dossier MyFlix : `node reset-password.js "ton nom d'utilisateur"`. Relance le serveur et connecte-toi avec le mot de passe affiché.
 
 ### Demandes de films
 

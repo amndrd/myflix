@@ -497,6 +497,19 @@ const server = http.createServer((req, res) => {
     });
   }
 
+  // Mot de passe oublié : l'admin est prévenu. Même réponse que le compte existe ou non.
+  if (pathname === '/api/auth/forgot' && req.method === 'POST') {
+    if (auth.rateLimited(req,'forgot',3,60*60*1000)) return jsonRes(res,{error:'Trop de demandes, réessaie plus tard'},429);
+    return readJson(req, res, 10e3, body => {
+      const u = auth.requestReset(body.username);
+      if (u) {
+        console.log(`[Auth] Mot de passe oublié : ${u.username}`);
+        auth.notify('MyFlix — mot de passe oublié', `${u.username} demande un nouveau mot de passe`, loadConfig());
+      }
+      jsonRes(res,{ok:true});
+    });
+  }
+
   if (pathname === '/api/auth/logout' && req.method === 'POST') {
     auth.logout(req);
     return jsonRes(res,{ok:true},200,{'Set-Cookie':auth.sessionCookie(req, '', 0)});
@@ -531,6 +544,15 @@ const server = http.createServer((req, res) => {
       : { requestUpdates: requests.unseenCount(user.id) }) });
   }
 
+  // ── Mon compte ──────────────────────────────────────────────────────────────
+  if (pathname === '/api/account/password' && req.method === 'POST') {
+    if (auth.rateLimited(req,'password:'+user.id,10,15*60*1000)) return jsonRes(res,{error:'Trop de tentatives, réessaie dans 15 minutes'},429);
+    return readJson(req, res, 10e3, body => {
+      const r = auth.changePassword(req, user, body.current, body.password);
+      jsonRes(res, r, r.error ? 400 : 200);
+    });
+  }
+
   // ── Admin : comptes et demandes d'accès ─────────────────────────────────────
   if (pathname === '/api/admin/users') return jsonRes(res,{ users: auth.listUsers() });
 
@@ -560,6 +582,12 @@ const server = http.createServer((req, res) => {
     return readJson(req, res, 10e3, body => {
       if (pathname.endsWith('/seen')) { requests.markSeen(user.id); return jsonRes(res,{ok:true}); }
       const r = pathname.endsWith('/vote') ? requests.vote(user.id, body.id) : requests.withdraw(user.id, body.id);
+      jsonRes(res, r, r.error ? 400 : 200);
+    });
+  }
+  if (pathname === '/api/admin/users/reset' && req.method === 'POST') {
+    return readJson(req, res, 10e3, body => {
+      const r = auth.resetPassword(body.id);
       jsonRes(res, r, r.error ? 400 : 200);
     });
   }

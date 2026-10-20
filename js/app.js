@@ -5803,16 +5803,20 @@ const App = (() => {
     if (!d?.users) { body.innerHTML = '<div class="access-empty">Impossible de charger les comptes</div>'; return; }
     const others = d.users.filter(u => u.role !== 'admin');
     const groups = [
-      { status:'pending',  label:'En attente', since:u => 'Demande du ' + _fmtDate(u.createdAt),
+      { key:'forgot',   label:'Mot de passe oublié', filter:u => u.status === 'approved' && u.resetRequestedAt,
+        since:u => 'Demandé le ' + _fmtDate(u.resetRequestedAt),
+        actions:[['reset','Nouveau mot de passe','primary']] },
+      { key:'pending',  label:'En attente', filter:u => u.status === 'pending', since:u => 'Demande du ' + _fmtDate(u.createdAt),
         actions:[['approve','Accepter','primary'], ['reject','Refuser','']] },
-      { status:'approved', label:'Membres',    since:u => 'Membre depuis le ' + _fmtDate(u.decidedAt) + (u.lastLoginAt ? ' · vu le ' + _fmtDate(u.lastLoginAt) : ''),
-        actions:[['reject','Retirer l\'accès','']] },
-      { status:'rejected', label:'Refusés',    since:u => 'Refusé le ' + _fmtDate(u.decidedAt),
+      { key:'approved', label:'Membres',    filter:u => u.status === 'approved' && !u.resetRequestedAt,
+        since:u => 'Membre depuis le ' + _fmtDate(u.decidedAt) + (u.lastLoginAt ? ' · vu le ' + _fmtDate(u.lastLoginAt) : '') + (u.mustChangePassword ? ' · mot de passe temporaire' : ''),
+        actions:[['reset','Nouveau mot de passe',''], ['reject','Retirer l\'accès','']] },
+      { key:'rejected', label:'Refusés',    filter:u => u.status === 'rejected', since:u => 'Refusé le ' + _fmtDate(u.decidedAt),
         actions:[['approve','Accepter',''], ['delete','Supprimer','danger']] },
     ];
     body.innerHTML = groups.map(g => {
-      const list = others.filter(u => u.status === g.status);
-      if (g.status !== 'pending' && !list.length) return '';
+      const list = others.filter(g.filter);
+      if (g.key !== 'pending' && !list.length) return '';
       const rows = list.map(u => `
         <div class="access-row">
           <div class="access-avatar">${esc(u.username.charAt(0).toUpperCase())}</div>
@@ -5831,12 +5835,88 @@ const App = (() => {
       const u = others.find(x => x.id === id); if (!u) return;
       if (action === 'delete' && !confirm(`Supprimer définitivement le compte « ${u.username} » ?`)) return;
       if (action === 'reject' && u.status === 'approved' && !confirm(`Retirer l'accès à « ${u.username} » ? Cette personne sera déconnectée immédiatement.`)) return;
+      if (action === 'reset') {
+        if (!confirm(`Créer un mot de passe temporaire pour « ${u.username} » ? L'ancien ne marchera plus et cette personne sera déconnectée de ses appareils.`)) return;
+        b.disabled = true;
+        const r = await apiPost('/api/admin/users/reset', { id });
+        if (!r?.ok) { toast(esc(r?.error || 'Action impossible'), 'error'); b.disabled = false; return; }
+        // Afficher le mot de passe dans la ligne, une seule fois
+        const row = b.closest('.access-row');
+        row.querySelector('.access-actions').remove();
+        row.querySelector('.access-info').insertAdjacentHTML('beforeend', `
+          <div class="access-temp">
+            <div>Mot de passe temporaire : <code>${esc(r.password)}</code> <button class="access-btn" type="button">Copier</button></div>
+            <p>Envoie-le à ${esc(u.username)}. Il faudra le changer à la prochaine connexion. Il ne sera plus affiché ensuite.</p>
+          </div>`);
+        row.querySelector('.access-temp button').addEventListener('click', e => {
+          navigator.clipboard?.writeText(r.password).then(() => { e.target.textContent = 'Copié'; }, () => toast('Copie impossible, sélectionne le texte', 'error'));
+        });
+        _refreshPendingBadge();
+        return;
+      }
       b.disabled = true;
       const r = await apiPost('/api/admin/users/decide', { id, action });
       if (!r?.ok) { toast(esc(r?.error || 'Action impossible'), 'error'); b.disabled = false; return; }
       toast(action === 'approve' ? `${esc(u.username)} a maintenant accès au site` : action === 'delete' ? 'Compte supprimé' : 'Accès retiré', 'success');
       _renderAccessPanel(); _refreshPendingBadge();
     }));
+  };
+
+  // Mon compte : infos + changement de mot de passe.
+  // forced : après une réinitialisation, impossible de fermer avant d'avoir choisi un mot de passe.
+  const openAccountPanel = (forced = false) => {
+    $('nav-account-menu').hidden = true;
+    $('modal-account')?.remove();
+    const overlay = document.createElement('div');
+    overlay.id = 'modal-account'; overlay.className = 'm-overlay open'; overlay.style.zIndex = '600';
+    if (forced) overlay.dataset.forced = '1';
+    overlay.innerHTML = `
+      <div class="m-box" style="max-width:420px">
+        <div class="m-head">
+          <h2>${forced ? 'MOT DE PASSE' : 'MON COMPTE'}</h2>
+          ${forced ? '' : '<div class="m-close" id="account-close"><svg><use href="#ic-x"/></svg></div>'}
+        </div>
+        <div class="m-body">
+          ${forced
+            ? '<p class="account-note">Tu utilises un mot de passe temporaire. Choisis ton propre mot de passe pour continuer.</p>'
+            : `<div class="account-id">
+                <div class="access-avatar">${esc(currentUser.username.charAt(0).toUpperCase())}</div>
+                <div><div class="access-name">${esc(currentUser.username)}</div>
+                <div class="access-meta">${isAdmin() ? 'Administrateur' : 'Membre'} depuis le ${_fmtDate(currentUser.decidedAt || currentUser.createdAt)}</div></div>
+              </div>
+              <div class="access-group-title">Changer de mot de passe</div>`}
+          <form id="account-pwd-form" autocomplete="off">
+            ${forced ? '' : '<div class="fg"><label for="acc-current">Mot de passe actuel</label><input id="acc-current" type="password" autocomplete="current-password" required></div>'}
+            <div class="fg"><label for="acc-new">Nouveau mot de passe</label><input id="acc-new" type="password" autocomplete="new-password" minlength="8" required placeholder="8 caractères minimum"></div>
+            <div class="fg"><label for="acc-new2">Confirmer</label><input id="acc-new2" type="password" autocomplete="new-password" minlength="8" required></div>
+            <button class="btn-submit" type="submit">Enregistrer</button>
+          </form>
+          ${forced ? '<p class="account-note small"><a href="#" id="account-logout">Se déconnecter</a></p>' : '<p class="account-note small">Tes autres appareils seront déconnectés.</p>'}
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    const close = () => overlay.remove();
+    if (!forced) {
+      overlay.querySelector('#account-close').addEventListener('click', close);
+      overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
+    } else {
+      overlay.querySelector('#account-logout').addEventListener('click', e => { e.preventDefault(); logout(); });
+    }
+    setTimeout(() => overlay.querySelector('input')?.focus(), 50);
+
+    const form = overlay.querySelector('#account-pwd-form');
+    form.addEventListener('submit', async e => {
+      e.preventDefault();
+      const next = $('acc-new').value;
+      if (next !== $('acc-new2').value) { toast('Les mots de passe ne correspondent pas', 'error'); return; }
+      const btn = form.querySelector('button'); btn.disabled = true;
+      const r = await apiPost('/api/account/password', { current: $('acc-current')?.value || '', password: next });
+      btn.disabled = false;
+      if (!r?.ok) { toast(esc(r?.error || 'Changement impossible'), 'error'); return; }
+      currentUser.mustChangePassword = false;
+      close();
+      toast('Mot de passe modifié', 'success');
+    });
   };
 
   // ── DEMANDES DE FILMS ───────────────────────────────────────────────────────
@@ -5995,6 +6075,7 @@ const App = (() => {
     currentUser = me.user;
     document.body.classList.toggle('is-admin', isAdmin());
     _initAccountMenu();
+    if (currentUser.mustChangePassword) openAccountPanel(true);
 
     window.addEventListener('scroll',()=>$('navbar').classList.toggle('solid',window.scrollY>40),{passive:true});
     initPlayerControls();
@@ -6289,6 +6370,8 @@ const App = (() => {
     // Escape
     document.addEventListener('keydown',e=>{
       if(e.key!=='Escape') return;
+      const panel = ['modal-account','modal-requests','modal-access'].map($).find(Boolean);
+      if (panel) { if (!panel.dataset.forced) panel.remove(); return; }
       if($('player-wrap').classList.contains('open')) closePlayer();
       else if($('modal-detail').classList.contains('open')) closeDetail();
       else if($('modal-add').classList.contains('open')) closeAdd();
@@ -6427,7 +6510,7 @@ const App = (() => {
     openAddEpisodeForSeries, openBulkImport, openNewSeries, openEditSeries, toggleSeason, playEpisode,
     _getAdjacentEpisode, _updateEpNavButtons,
     play, closePlayer, _playFromStart, showDetail, closeDetail, confirmDelete, hideEndScreen,
-    openSettings, closeSettings, openAccessPanel, openRequestsPanel, logout,
+    openSettings, closeSettings, openAccessPanel, openRequestsPanel, openAccountPanel, logout,
     openNewCollection, openEditCollection, submitCollection, deleteCollection,
     showCollectionDetail, closeCollectionDetail, _colRemoveFilm };
 })();

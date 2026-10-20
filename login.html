@@ -52,6 +52,8 @@
     .switch { margin-top:1.3rem; text-align:center; color:var(--text-3); font-size:13px; }
     .switch a { color:var(--text); text-decoration:none; font-weight:500; border-bottom:1px solid rgba(255,255,255,.25); cursor:pointer; }
     .switch a:hover { border-color:var(--accent); }
+    .switch.forgot { margin-top:.5rem; font-size:12px; }
+    .switch.forgot a { color:var(--text-3); font-weight:400; border-bottom-color:rgba(255,255,255,.12); }
     .error {
       display:none; font-size:12px; color:#ff6b6b; background:rgba(var(--accent-rgb),.08);
       border:1px solid rgba(var(--accent-rgb),.25); border-radius:8px; padding:.55rem .75rem;
@@ -85,6 +87,27 @@
       <button class="primary" type="submit">Se connecter</button>
     </form>
     <p class="switch">Pas encore de compte ? <a data-go="register">Demander un accès</a></p>
+    <p class="switch forgot"><a data-go="forgot">Mot de passe oublié ?</a></p>
+  </section>
+
+  <!-- Mot de passe oublié -->
+  <section id="view-forgot" hidden>
+    <h1>Mot de passe oublié</h1>
+    <p class="sub">L'administrateur sera prévenu et te donnera un mot de passe temporaire</p>
+    <form id="form-forgot">
+      <div><label for="forgot-user">Nom d'utilisateur</label><input id="forgot-user" name="username" autocomplete="username" required></div>
+      <div class="error" role="alert"></div>
+      <button class="primary" type="submit">Prévenir l'administrateur</button>
+    </form>
+    <p class="switch"><a data-go="login">Retour à la connexion</a></p>
+  </section>
+
+  <!-- Demande de mot de passe envoyée -->
+  <section id="view-forgot-sent" class="notice" hidden>
+    <div class="icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7z"/></svg></div>
+    <h1>C'est noté</h1>
+    <p>Si ce compte existe, l'administrateur a été prévenu. Il t'enverra un mot de passe temporaire, que tu changeras à la connexion.</p>
+    <p class="switch"><a data-go="login">Retour à la connexion</a></p>
   </section>
 
   <!-- Demande d'accès -->
@@ -140,13 +163,16 @@
 
 <script>
 (() => {
-  const views = ['login','register','setup','pending','rejected','unavailable'];
+  const views = ['login','register','setup','pending','rejected','unavailable','forgot','forgot-sent'];
   const show = (name) => {
     views.forEach(v => { document.getElementById('view-' + v).hidden = v !== name; });
     const first = document.querySelector('#view-' + name + ' input');
     if (first) first.focus();
   };
-  document.querySelectorAll('[data-go]').forEach(a => a.addEventListener('click', () => show(a.dataset.go)));
+  document.querySelectorAll('[data-go]').forEach(a => a.addEventListener('click', () => {
+    if (a.dataset.go === 'forgot') document.getElementById('forgot-user').value = document.getElementById('login-user').value;
+    show(a.dataset.go);
+  }));
 
   const post = async (url, body) => {
     try {
@@ -185,6 +211,12 @@
   bind('form-register', async (f) => {
     const { data } = await post('/api/auth/register', { username:f.username, password:f.password, message:f.message });
     if (data.ok) { document.getElementById('form-register').reset(); show('pending'); return; }
+    return data.error || 'Envoi impossible';
+  });
+
+  bind('form-forgot', async (f) => {
+    const { data } = await post('/api/auth/forgot', { username:f.username });
+    if (data.ok) { document.getElementById('form-forgot').reset(); show('forgot-sent'); return; }
     return data.error || 'Envoi impossible';
   });
 
