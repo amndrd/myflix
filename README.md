@@ -85,7 +85,7 @@ MonDisque/
     Science-Fiction/
       Interstellar.mp4
 
-MyFlix scanne les dossiers jusqu'a 4 niveaux de profondeur.
+MyFlix scanne les dossiers jusqu'à 4 niveaux de profondeur.
 
 ---
 
@@ -128,7 +128,7 @@ Fichiers sensibles (jamais envoyés au navigateur) :
 
 ---
 
-## 🔒 Confidentialite
+## 🔒 Confidentialité
 
 - Tout reste en local sur ton Mac, aucune donnée n'est envoyée sur internet (sauf la notification ntfy si tu l'actives)
 - Le serveur écoute sur ton réseau local (port 8989) : sans compte validé, on ne voit que la page de connexion
