@@ -8,3 +8,8 @@ images/*
 
 # macOS
 .DS_Store
+
+# Logs et éditeurs
+*.log
+.vscode/
+.idea/
